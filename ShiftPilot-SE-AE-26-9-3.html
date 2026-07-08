@@ -1,0 +1,2899 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ShiftPilot SE AE 26</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --gold:#FFC72C;--red:#DA291C;--pine:#0E4A34;--dark:#F2F2F2;--s1:#FFFFFF;--s2:#F5F5F5;--s3:#EDEDED;
+  --muted:#666;--text:#1A1A1A;--green:#22C55E;--blue:#3B82F6;--orange:#F59E0B;--purple:#A855F7;
+  --border:#E0E0E0;
+}
+html{scroll-behavior:smooth}
+body{background:#FFFFFF;color:#141414;font-family:'Segoe UI',system-ui,sans-serif;min-height:100vh}
+button{cursor:pointer;font-family:inherit;border:none;outline:none}
+input,textarea,select{font-family:inherit;outline:none;color:var(--text)}
+input::-webkit-inner-spin-button{-webkit-appearance:none}
+
+/* ── NAV ── */
+.nav{background:linear-gradient(135deg,var(--pine),#082c20);padding:0 24px;position:sticky;top:0;z-index:100;box-shadow:0 2px 20px rgba(0,0,0,.5)}
+.nav-inner{max-width:1200px;margin:0 auto;display:flex;align-items:stretch;justify-content:space-between;flex-wrap:wrap;gap:0}
+.nav-brand{display:flex;align-items:center;gap:10px;padding:14px 0}
+.nav-logo{height:54px;width:auto;border-radius:6px;flex-shrink:0}
+.nav-title{display:flex;flex-direction:column}
+.nav-title span:first-child{font-size:19px;font-weight:700;color:rgba(255,255,255,.9);letter-spacing:.05em}
+.nav-title span:last-child{font-size:13px;color:rgba(255,255,255,.5);letter-spacing:.08em;text-transform:uppercase}
+.nav-tabs{display:flex;align-items:stretch;gap:2px}
+.nav-tab{background:transparent;color:rgba(255,255,255,.6);padding:0 20px;font-size:13px;font-weight:600;border-bottom:3px solid transparent;transition:all .2s;display:flex;align-items:center;gap:7px}
+.nav-tab:hover{color:white;background:rgba(255,255,255,.06)}
+.nav-tab.active{color:var(--gold);border-bottom-color:var(--gold);background:rgba(255,199,44,.08)}
+.nav-clock{display:flex;align-items:center;font-family:'Courier New',monospace;font-size:20px;font-weight:700;color:var(--gold);letter-spacing:.06em;padding:0 4px 0 22px;border-left:1px solid rgba(255,255,255,.15);margin-left:4px}
+.nav-tab .ico{font-size:15px}
+
+/* ── PAGES ── */
+.page{display:none;padding:28px 24px 60px;max-width:1200px;margin:0 auto}
+.page.active{display:block}
+
+/* ── STEP HEADER ── */
+.page-header{margin-bottom:28px}
+.page-header h1{font-size:22px;font-weight:800;color:#141414;display:flex;align-items:center;gap:10px}
+.page-header p{color:var(--muted);font-size:13px;margin-top:5px}
+
+/* ── CARDS ── */
+.card{background:var(--s1);border:1px solid var(--border);border-radius:14px;padding:20px;margin-bottom:16px;box-shadow:0 1px 4px rgba(0,0,0,.04)}
+.card-title{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.1em;color:var(--muted);margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.card-title::after{content:'';flex:1;height:1px;background:var(--border)}
+
+/* ── SETUP FORM ── */
+.setup-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px}
+.setup-grid-row{display:flex;flex-wrap:nowrap;gap:14px;overflow-x:auto;padding-bottom:4px}
+.setup-grid-row .field{flex:1 1 0;min-width:160px}
+.field{display:flex;flex-direction:column;gap:6px}
+.field label{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:.07em;font-weight:600}
+.field input,.field select,.field textarea{
+  background:var(--s2);border:1px solid var(--border);border-radius:9px;
+  padding:10px 14px;font-size:14px;color:var(--text);transition:border-color .2s;width:100%
+}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--gold)}
+.field select option{background:var(--s2)}
+
+/* ── BTN ── */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:10px 22px;border-radius:9px;font-size:13px;font-weight:700;transition:all .15s}
+.btn-gold{background:var(--gold);color:#111}
+.btn-gold:hover{background:#e6b000;transform:translateY(-1px)}
+.btn-outline{background:transparent;border:1px solid var(--border);color:var(--muted)}
+.btn-outline:hover{border-color:var(--gold);color:var(--gold)}
+.btn-red{background:var(--red);color:white}
+.btn-red:hover{background:#b91c1c}
+.btn-green{background:var(--green);color:#111}
+.btn-green:hover{background:#16a34a}
+
+/* ── KPI ROW ── */
+.kpi-row{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:20px}
+.kpi{background:var(--s2);border-radius:11px;padding:12px 16px;border-left:3px solid var(--gold);min-width:100px;display:flex;flex-direction:column;gap:3px}
+.kpi-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em;font-family:monospace}
+.kpi-val{font-size:20px;font-weight:900;font-family:monospace}
+.kpi-sub{font-size:10px;color:var(--muted)}
+
+/* ── HOUR ACCORDION ── */
+.h-card{background:var(--s1);border:1px solid var(--border);border-radius:13px;overflow:hidden;margin-bottom:12px;transition:border-color .2s}
+.h-card.open{border-color:var(--gold)}
+.h-head{display:flex;align-items:center;justify-content:space-between;padding:14px 18px;cursor:pointer;user-select:none;transition:background .2s}
+.h-card.open .h-head{background:rgba(255,199,44,.06)}
+.h-badge{background:var(--gold);color:#111;font-weight:900;font-family:monospace;font-size:14px;padding:4px 12px;border-radius:7px}
+.h-meta{color:var(--muted);font-size:13px;margin-left:12px}
+.h-status{display:flex;align-items:center;gap:10px}
+.h-arrow{color:var(--gold);font-size:16px;transition:transform .2s}
+.h-card.open .h-arrow{transform:rotate(180deg)}
+.h-body{display:none;padding:4px 18px 18px}
+.h-card.open .h-body{display:block}
+
+/* ── INPUTS GRID ── */
+.inp-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:12px;margin-bottom:16px}
+.inp-group label{display:block;font-size:11px;color:var(--muted);margin-bottom:5px}
+.inp-group label em{font-style:normal;font-weight:700}
+.inp-box{
+  width:100%;background:var(--dark);border:1.5px solid var(--border);border-radius:8px;
+  padding:9px 13px;font-size:15px;font-family:monospace;color:var(--text);transition:border-color .2s
+}
+.inp-box:focus{border-color:var(--gold)}
+.inp-box.filled-ok{border-color:var(--green)}
+.inp-box.filled-warn{border-color:var(--orange)}
+
+/* ── MINI PROGRESS ── */
+.mprog{display:none;align-items:center;gap:8px;margin-top:5px}
+.mprog.show{display:flex}
+.mprog-track{flex:1;height:5px;background:var(--border);border-radius:3px;overflow:hidden}
+.mprog-fill{height:100%;border-radius:3px;transition:width .4s}
+.mprog-pct{font-size:11px;font-family:monospace;min-width:34px;font-weight:700}
+
+/* ── CHIPS ── */
+.chips{display:flex;flex-wrap:wrap;gap:7px}
+.chip{background:var(--dark);border-radius:8px;padding:5px 13px;display:flex;align-items:center;gap:7px;font-size:12px}
+.chip-val{font-weight:800;font-family:monospace}
+.chip-lbl{color:var(--muted)}
+
+/* ── SUMMARY BAR ── */
+.sum-bar{background:var(--s2);border:1px solid var(--border);border-radius:13px;padding:16px 22px;display:flex;flex-wrap:wrap;gap:20px;align-items:center;margin-bottom:20px}
+.sum-item{}
+.sum-lbl{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.08em}
+.sum-val{font-family:monospace;font-weight:900;font-size:26px}
+.sum-sub{color:var(--muted);font-size:12px;margin-left:4px}
+.sum-div{width:1px;height:36px;background:var(--border)}
+
+/* ── DEBRIEF comparison ── */
+.cmp-overflow{overflow-x:auto;width:100%}
+.cmp-table{width:100%;border-collapse:collapse;font-size:13px;min-width:900px}
+.cmp-table th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.07em;padding:6px 10px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+.cmp-table td{padding:9px 10px;border-bottom:1px solid rgba(0,0,0,.06);white-space:nowrap}
+.cmp-table tr:last-child td{border-bottom:none}
+.delta-pos{color:var(--green);font-weight:700}
+.delta-neg{color:var(--red);font-weight:700}
+.delta-neu{color:var(--muted)}
+/* Cards synthèse : hauteur auto pour englober tout le contenu */
+#cmp-card,#cmp-speed-card{height:auto;overflow:visible}
+
+/* ── POSITIONNEMENT ── */
+.pos-controls{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:20px}
+.pos-card{
+  background:var(--s2);border:1px solid var(--border);border-radius:12px;padding:14px;
+  display:flex;flex-direction:column;gap:8px;transition:border-color .2s
+}
+.pos-card:hover{border-color:rgba(255,199,44,.4)}
+.pos-card-head{display:flex;justify-content:space-between;align-items:center}
+.pos-name{font-size:13px;font-weight:700;color:var(--text)}
+.pos-role{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.pos-stepper{display:flex;align-items:center;gap:10px}
+.step-btn{
+  width:30px;height:30px;border-radius:8px;background:var(--s3);color:var(--text);
+  font-size:18px;font-weight:700;display:flex;align-items:center;justify-content:center;
+  transition:all .15s;border:1px solid var(--border)
+}
+.step-btn:hover{background:var(--gold);color:#111;border-color:var(--gold)}
+.step-num{font-size:20px;font-weight:900;font-family:monospace;min-width:28px;text-align:center}
+.pos-bar{height:4px;background:var(--border);border-radius:2px;overflow:hidden}
+.pos-bar-fill{height:100%;border-radius:2px;transition:width .3s}
+
+/* ── CREW SUMMARY ── */
+.crew-total-bar{background:var(--s2);border:1px solid var(--border);border-radius:13px;padding:16px 22px;margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:16px}
+.crew-gauge{display:flex;align-items:center;gap:14px}
+.gauge-ring{width:70px;height:70px;position:relative}
+.gauge-ring svg{transform:rotate(-90deg)}
+.gauge-center{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.gauge-num{font-size:18px;font-weight:900;font-family:monospace;color:var(--gold);line-height:1}
+.gauge-sub{font-size:9px;color:var(--muted);text-transform:uppercase}
+
+/* ── FLOOR MAP ── */
+.floor-map{background:var(--s2);border:1px solid var(--border);border-radius:13px;padding:20px;margin-bottom:20px}
+.floor-grid{display:grid;grid-template-areas:
+  "prod prod bev bev drive drive"
+  "prod prod fries assembly drive drive"
+  "cashier kiosk kiosk delivery sat sat"
+  "accueil accueil lobby mc . .";
+  grid-template-columns:repeat(6,1fr);gap:8px}
+.fz{background:var(--s3);border-radius:10px;padding:10px 8px;display:flex;flex-direction:column;align-items:center;gap:4px;border:1px solid var(--border);transition:all .2s}
+.fz:hover{border-color:rgba(255,199,44,.4)}
+.fz-name{font-size:10px;color:var(--muted);text-transform:uppercase;letter-spacing:.06em;text-align:center}
+.fz-num{font-size:22px;font-weight:900;font-family:monospace}
+.fz-bar{width:100%;height:3px;background:var(--border);border-radius:2px;overflow:hidden;margin-top:2px}
+.fz-bar-fill{height:100%;border-radius:2px}
+[data-zone="prod"]{grid-area:prod}
+[data-zone="bev"]{grid-area:bev}
+[data-zone="drive"]{grid-area:drive}
+[data-zone="fries"]{grid-area:fries}
+[data-zone="assembly"]{grid-area:assembly}
+[data-zone="cashier"]{grid-area:cashier}
+[data-zone="kiosk"]{grid-area:kiosk}
+[data-zone="delivery"]{grid-area:delivery}
+[data-zone="sat"]{grid-area:sat}
+[data-zone="accueil"]{grid-area:accueil}
+[data-zone="lobby"]{grid-area:lobby}
+[data-zone="mc"]{grid-area:mc}
+
+/* ── OBJECTIFS ── */
+.obj-grid{display:flex;flex-direction:column;gap:12px}
+.obj-item{background:var(--s2);border-radius:12px;padding:14px 18px;border-left:3px solid var(--gold)}
+.obj-top{display:flex;align-items:flex-start;gap:10px;margin-bottom:8px}
+.obj-badge{background:var(--gold);color:#111;border-radius:6px;padding:2px 9px;font-size:10px;font-weight:800;white-space:nowrap;margin-top:2px}
+.obj-text{font-weight:700;font-size:13px}
+.obj-text-input{flex:1;background:transparent;border:none;border-bottom:1px dashed transparent;font-weight:700;font-size:13px;color:var(--text);padding:2px 0}
+.obj-text-input:hover{border-bottom-color:var(--border)}
+.obj-text-input:focus{border-bottom-color:var(--gold)}
+.obj-del{margin-left:auto;background:transparent;color:var(--muted);font-size:13px;padding:2px 8px;border-radius:6px;flex-shrink:0}
+.obj-del:hover{color:var(--red);background:rgba(218,41,28,.1)}
+.actions{display:flex;flex-direction:column;gap:5px;margin-bottom:10px;padding-left:6px}
+.action{display:flex;gap:8px;font-size:12px;color:#555;align-items:center}
+.action::before{content:"→";color:var(--green);flex-shrink:0}
+.action-input{flex:1;background:transparent;border:none;border-bottom:1px dashed transparent;font-size:12px;color:#333;padding:2px 0}
+.action-input:hover{border-bottom-color:var(--border)}
+.action-input:focus{border-bottom-color:var(--gold);color:var(--text)}
+.action-del{background:transparent;color:var(--muted);font-size:12px;padding:0 6px;flex-shrink:0}
+.action-del:hover{color:var(--red)}
+.action-add{background:transparent;color:var(--gold);font-size:11px;font-weight:600;padding:2px 0;text-align:left;width:fit-content}
+.action-add:hover{text-decoration:underline}
+.obj-note{width:100%;background:var(--dark);border:1px solid var(--border);border-radius:8px;padding:8px 12px;font-size:12px;color:var(--text);resize:vertical;min-height:44px}
+.obj-note:focus{border-color:var(--gold)}
+
+/* ── HISTORIQUE ── */
+.empty-state{text-align:center;padding:48px 20px;color:var(--muted)}
+.empty-state .empty-icon{font-size:32px;margin-bottom:10px}
+.hist-table{width:100%;border-collapse:collapse;font-size:13px}
+.hist-table th{color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.07em;padding:8px 10px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+.hist-table td{padding:10px 10px;border-bottom:1px solid rgba(0,0,0,.06);white-space:nowrap}
+.hist-table tbody tr:hover{background:rgba(0,0,0,.025)}
+.badge{padding:3px 11px;border-radius:20px;font-size:11px;font-weight:700;display:inline-block}
+.badge-success{background:rgba(34,197,94,.15);color:var(--green)}
+.badge-warning{background:rgba(245,158,11,.15);color:var(--orange)}
+.badge-danger{background:rgba(218,41,28,.15);color:var(--red)}
+.hist-overflow{overflow-x:auto}
+
+/* ── SPEED TABLE (KVS / R2P / OEPE / TPHE / M.O / NGK) ── */
+.speed-overflow{overflow-x:auto}
+.speed-table{width:100%;border-collapse:collapse;font-size:13px;min-width:760px}
+.speed-table th{color:var(--muted);font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;padding:6px 6px;text-align:center;border-bottom:1px solid var(--border);line-height:1.3}
+.speed-table th:first-child{text-align:left}
+.speed-table td{padding:6px 5px;border-bottom:1px solid rgba(0,0,0,.06);text-align:center}
+.speed-table td:first-child{text-align:left;font-weight:700;color:var(--text);white-space:nowrap;padding-right:10px}
+.speed-table tbody tr:hover{background:rgba(0,0,0,.025)}
+.speed-table input{width:100%;min-width:62px;background:var(--s2);border:1px solid var(--border);border-radius:8px;padding:7px 5px;font-size:13px;text-align:center;color:var(--text);transition:border-color .2s}
+.speed-table input:focus{border-color:var(--gold)}
+.hist-del{background:transparent;color:var(--muted);font-size:13px;padding:4px 9px;border-radius:6px}
+.hist-del:hover{color:var(--red);background:rgba(218,41,28,.1)}
+
+/* ── TOAST ── */
+.toast{
+  position:fixed;bottom:28px;right:28px;background:var(--green);color:#111;
+  padding:12px 22px;border-radius:10px;font-weight:700;font-size:13px;
+  transform:translateY(80px);opacity:0;transition:all .3s;z-index:999;pointer-events:none
+}
+.toast.show{transform:translateY(0);opacity:1}
+
+/* ── PRINT ── */
+@media print{
+  .nav,.no-print{display:none!important}
+  .page{display:block!important;padding:10px}
+  body{background:white;color:#111}
+  .card,.h-card,.sum-bar,.kpi,.pos-card,.obj-item{background:white!important;border-color:#ddd!important}
+  .h-body{display:block!important}
+}
+
+/* ── RESPONSIVE ── */
+@media(max-width:700px){
+  .nav-tabs{width:100%;overflow-x:auto;padding-bottom:2px}
+  .nav-tab{padding:0 12px;font-size:12px}
+  .page{padding:16px 14px 60px}
+  .floor-grid{grid-template-areas:"prod prod bev" "fries assembly drive" "cashier kiosk delivery" "sat accueil accueil" "lobby mc .";grid-template-columns:repeat(3,1fr)}
+  [data-zone="drive"]{grid-area:drive}
+  .time-row{grid-template-columns:1fr auto}
+  .time-row-label{text-align:left;margin-top:2px}
+}
+.time-row{display:grid;grid-template-columns:1fr 2fr;gap:10px;align-items:end;margin-bottom:10px}
+.time-row-label{font-weight:800;color:var(--gold);font-size:15px;align-self:center;white-space:nowrap}
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-inner">
+    <div class="nav-brand">
+      <img class="nav-logo" src="data:image/png;base64,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" alt="McDonald's">
+      <div class="nav-title">
+        <span>ShiftPilot <span style="font-weight:400">SE-AE-26</span></span>
+        <span>Brief · Debrief · Positionnement</span>
+      </div>
+    </div>
+    <div class="nav-tabs">
+      <button class="nav-tab active" onclick="goPage('setup')" id="ntab-setup">Configuration</button>
+      <button class="nav-tab" onclick="goPage('brief')" id="ntab-brief">Brief</button>
+      <button class="nav-tab" onclick="goPage('positionnement')" id="ntab-positionnement">Positionnement</button>
+      <button class="nav-tab" onclick="goPage('debrief')" id="ntab-debrief">Debrief</button>
+      <button class="nav-tab" onclick="goPage('historique')" id="ntab-historique">⏱ Historique</button>
+    </div>
+    <div class="nav-clock" id="nav-clock">--:--:--</div>
+  </div>
+</nav>
+
+<!-- ══════════════ PAGE: SETUP ══════════════ -->
+<div class="page active" id="page-setup">
+  <div class="page-header">
+    <h1>Configuration du shift</h1>
+    <p>Renseignez les informations du quart avant de commencer le brief.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Informations générales</div>
+    <div class="setup-grid-row">
+      <div class="field"><label>Restaurant</label><input id="cfg-restaurant" value="" placeholder="Nom du restaurant"></div>
+      <div class="field"><label>Date</label><input id="cfg-date" type="date" value=""></div>
+      <div class="field"><label>Manager de quart</label><input id="cfg-manager" value="" placeholder="Prénom"></div>
+      <div class="field"><label>Événement / Météo</label><input id="cfg-event" value="" placeholder="ex: Soleil, Match, Promo..."></div>
+      <div class="field"><label>Période du shift</label>
+        <select id="cfg-period">
+          <option value="">Sélectionner</option>
+          <option value="OPEN">Open</option>
+          <option value="SWING">Swing</option>
+          <option value="CLOSE">Close</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Objectifs du jour</div>
+    <div class="setup-grid-row">
+      <div class="field"><label>Sales prévisionnels (MAD)</label><input id="cfg-sales" type="number" value="" oninput="syncPmCible()"></div>
+      <div class="field"><label>TC's prévisionnels</label><input id="cfg-gcs" type="number" value="" oninput="syncPmCible()"></div>
+      <div class="field"><label>PM cible (MAD)</label><input id="cfg-pm" type="number" value="" readonly style="background:var(--s2);cursor:not-allowed;opacity:.85" title="Calculé automatiquement = Sales prévisionnels / TC's prévisionnels"></div>
+      <div class="field"><label>Nbr de présenter</label><input id="cfg-presenter" type="number" value="" min="0"></div>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Journée de référence</div>
+    <p style="color:var(--muted);font-size:12px;margin-bottom:14px">Saisissez les transactions réalisées d'un jour de référence pour chaque tranche. L'outil en calcule automatiquement les % et ratios (Drive, AC, NGK, Delivery, McCafé, Frites/Boissons par TC) utilisés dans le Brief.</p>
+    <div class="field" style="max-width:260px"><label>Date de la journée de référence</label><input id="cfg-refdate" type="date" value=""></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Prévisions par tranche</div>
+    <div id="hours-setup"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Tranches horaires — Prévisions %</div>
+    <div id="refday-setup"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Pilotage objectifs par tranche</div>
+    <p style="color:var(--muted);font-size:12px;margin-bottom:14px">Indicateurs vitesse (KVS, R2P, OEPE, TPHE)<br>Pilotage (M.O%) 0 contrainte</p>
+    <div id="speed-refdate-label" style="color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px"></div>
+    <div class="speed-overflow">
+      <table class="speed-table">
+        <thead id="speed-setup-head">
+          <tr>
+            <th>Tranche</th>
+            <th data-kvscol="1">KVS TIME<br>Ligne 1</th>
+            <th data-kvscol="2">KVS TIME<br>Ligne 2</th>
+            <th data-kvscol="3">KVS TIME<br>Ligne 3</th>
+            <th data-kvscol="4">KVS TIME<br>Ligne 4</th>
+            <th>R2P<br>(90s)</th>
+            <th>OEPE DRIVE<br>(120s)</th>
+            <th>TPHE</th>
+            <th>M.O %</th>
+            <th>NGK<br><span style="font-weight:400;font-size:9px;text-transform:none;letter-spacing:0">(auto)</span></th>
+          </tr>
+        </thead>
+        <tbody id="speed-setup-body"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Pilotage objectifs digital</div>
+    <div id="digital-setup"></div>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Effectif disponible</div>
+    <div class="setup-grid">
+      <div class="field"><label>Équipiers total présents</label><input id="cfg-crew" type="number" value=""></div>
+      <div class="field"><label>Managers total présents (- Shift MGR)</label><input id="cfg-managers" type="number" value=""></div>
+      <div class="field"><label>Taux horaire moyen (MAD)</label><input id="cfg-rate" type="number" value="" oninput="syncAllMoPct()"></div>
+    </div>
+  </div>
+
+  <div style="display:flex;gap:12px;margin-top:8px;flex-wrap:wrap">
+    <button class="btn btn-gold" onclick="applySetup()">✓ Valider et préparer le brief</button>
+    <button class="btn btn-outline no-print" onclick="nouveauRemplissage()" title="Vide tous les champs (Manager, Date, Événement, Période, prévisions, journée de référence, objectifs, positionnement, réalisés) — seul le Restaurant est conservé. Les managers ayant déjà validé leur brief retrouvent leurs données en resaisissant leur nom, date et période.">🆕 Nouveau remplissage</button>
+    <button class="btn btn-outline no-print" onclick="resetAll()">↺ Réinitialiser</button>
+  </div>
+</div>
+
+<!-- ══════════════ PAGE: BRIEF ══════════════ -->
+<div class="page" id="page-brief">
+  <div class="page-header">
+    <h1>Brief <span id="brief-title" style="color:var(--muted);font-weight:400;font-size:16px"></span></h1>
+    <p>Communiquez les objectifs à l'équipe.</p>
+
+  </div>
+
+  <!-- Top KPIs -->
+  <div class="kpi-row" id="brief-kpis"></div>
+
+  <!-- Objectifs -->
+  <div class="card">
+    <div class="card-title">Objectifs & Actions du shift</div>
+    <div class="obj-grid" id="obj-grid"></div>
+    <button class="btn btn-outline no-print" onclick="addObjectif()" style="margin-top:14px">+ Ajouter un objectif</button>
+  </div>
+
+  <!-- Hours -->
+  <div id="brief-hours"></div>
+
+  <div style="display:flex;gap:12px;margin-top:8px" class="no-print">
+    <button class="btn btn-gold" onclick="goPage('positionnement')">→ Passer au positionnement</button>
+    <button class="btn btn-outline" onclick="window.print()">🖨️ Imprimer le brief</button>
+  </div>
+</div>
+
+<!-- ══════════════ PAGE: POSITIONNEMENT ══════════════ -->
+<div class="page" id="page-positionnement">
+  <div class="page-header">
+    <h1>Positionnement des équipiers</h1>
+    <p>Ajustez le nombre d'équipiers par poste selon le rush prévu de la tranche sélectionnée. Le total et les indicateurs sont calculés automatiquement à partir du Brief.</p>
+  </div>
+
+  <!-- Hour selector (= "Heur:" Input(2)!B6) -->
+  <div class="card" style="margin-bottom:14px;padding:14px 20px">
+    <div class="card-title" style="margin-bottom:10px">Tranche horaire active</div>
+    <div class="chips" id="pos-hour-tabs"></div>
+  </div>
+
+  <!-- Objectifs vitesse & pilotage de la tranche active -->
+  <div class="card" style="margin-bottom:14px">
+    <div class="card-title">Objectifs vitesse & pilotage — tranche <span id="pos-speed-hour-label" style="color:var(--gold)"></span></div>
+    <div class="kpi-row" id="pos-speed-kpis"></div>
+  </div>
+
+  <!-- Crew total gauge -->
+  <div class="crew-total-bar">
+    <div class="crew-gauge">
+      <div class="gauge-ring">
+        <svg width="70" height="70" viewBox="0 0 70 70">
+          <circle cx="35" cy="35" r="28" fill="none" stroke="var(--border)" stroke-width="6"/>
+          <circle id="gauge-circle" cx="35" cy="35" r="28" fill="none" stroke="var(--gold)" stroke-width="6"
+            stroke-dasharray="175.93" stroke-dashoffset="175.93" stroke-linecap="round"/>
+        </svg>
+        <div class="gauge-center">
+          <span class="gauge-num" id="gauge-num">0</span>
+          <span class="gauge-sub">équip.</span>
+        </div>
+      </div>
+      <div>
+        <div style="font-size:13px;font-weight:700;color:var(--text)">Équipiers positionnés</div>
+        <div style="font-size:12px;color:var(--muted)" id="gauge-sub-text">sur 60 disponibles</div>
+        <div style="font-size:11px;margin-top:4px" id="gauge-warn"></div>
+      </div>
+    </div>
+    <div style="display:flex;gap:10px;flex-wrap:wrap">
+      <button class="btn btn-outline" onclick="autoPosition()">⚡ Positionnement auto</button>
+      <button class="btn btn-gold" onclick="goPage('debrief')">→ Lancer le service</button>
+    </div>
+  </div>
+
+  <!-- Output indicators (= Input(2) colonne Output, calculés depuis le Brief) -->
+  <div class="card">
+    <div class="card-title">Indicateurs calculés — tranche <span id="pos-hour-label" style="color:var(--gold)"></span></div>
+    <div class="kpi-row" id="pos-output-kpis" style="margin-bottom:0"></div>
+  </div>
+
+  <!-- Floor map -->
+  <div class="card">
+    <div class="card-title">Plan de salle — Vue des zones</div>
+    <div class="floor-map" style="background:transparent;border:none;padding:0">
+      <div class="floor-grid" id="floor-grid"></div>
+    </div>
+  </div>
+
+  <!-- Controls -->
+  <div class="card">
+    <div class="card-title">Ajustement détaillé par poste</div>
+    <div class="pos-controls" id="pos-controls"></div>
+  </div>
+
+  <!-- Masse salariale -->
+  <div class="card">
+    <div class="card-title">Estimation masse salariale</div>
+    <div class="kpi-row" id="pos-kpis"></div>
+  </div>
+</div>
+
+<!-- ══════════════ PAGE: DEBRIEF ══════════════ -->
+<div class="page" id="page-debrief">
+  <div class="page-header">
+    <h1>Debrief <span id="debrief-title" style="color:var(--muted);font-weight:400;font-size:16px"></span></h1>
+    <p>Saisissez les réalisés. L'outil calcule les écarts et les actions correctives.</p>
+  </div>
+
+  <!-- Summary -->
+  <div class="sum-bar" id="debrief-sumbar"></div>
+
+  <!-- Hours debrief -->
+  <div id="debrief-hours"></div>
+
+  <!-- Comparison table -->
+  <div class="card" id="cmp-card" style="display:none">
+    <div class="card-title">Synthèse Prévu vs Réalisé - ventes</div>
+    <div class="cmp-overflow">
+      <table class="cmp-table" id="cmp-table"></table>
+    </div>
+  </div>
+
+  <!-- Comparison table — vitesse & pilotage -->
+  <div class="card" id="cmp-speed-card" style="display:none">
+    <div class="card-title">Synthèse Prévu vs Réalisé — Indicateurs vitesse & pilotage</div>
+    <div class="cmp-overflow">
+      <table class="cmp-table" id="cmp-speed-table"></table>
+    </div>
+  </div>
+
+  <!-- Note debrief -->
+  <div class="card">
+    <div class="card-title">Note de fin de shift</div>
+    <div class="field"><label>Points positifs</label><textarea class="obj-note" id="db-positifs" rows="2" placeholder="Ce qui a bien fonctionné..."></textarea></div>
+    <div class="field" style="margin-top:10px"><label>Points d'amélioration</label><textarea class="obj-note" id="db-amelio" rows="2" placeholder="Ce qu'il faut améliorer pour le prochain shift..."></textarea></div>
+    <div class="field" style="margin-top:10px"><label>Actions pour le prochain manager</label><textarea class="obj-note" id="db-next" rows="2" placeholder="Consignes de passation..."></textarea></div>
+  </div>
+
+  <div style="display:flex;gap:12px;margin-top:8px" class="no-print">
+    <button class="btn btn-gold" onclick="window.print()">🖨️ Imprimer le debrief</button>
+    <button class="btn btn-green" onclick="exportDebrief()">📄 Exporter résumé (PDF)</button>
+  </div>
+</div>
+
+<!-- ══════════════ PAGE: HISTORIQUE ══════════════ -->
+<div class="page" id="page-historique">
+  <div class="page-header">
+    <h1>Historique des shifts</h1>
+    <p>Traçabilité des debriefs enregistrés. Une entrée est ajoutée à chaque export PDF du résumé.</p>
+  </div>
+
+  <div class="card">
+    <div class="card-title">Sessions enregistrées</div>
+    <div id="history-content"></div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+const OBJECTIFS_DEFAULT = [
+  {obj:"",actions:[""],note:""},
+];
+
+const POSTES_DEFAULT = [
+  {id:"prod",   name:"Production",      crew:0, max:23, color:"#DA291C", zone:"prod"},
+  {id:"bev",    name:"Beverage",        crew:0,  max:6, color:"#3B82F6", zone:"bev"},
+  {id:"fries",  name:"Frites",          crew:0,  max:6,  color:"#FFC72C", zone:"fries"},
+  {id:"assembly",name:"Assembly Zone",  crew:0,  max:10, color:"#22C55E", zone:"assembly"},
+  {id:"drive",  name:"Drive",           crew:0,  max:15, color:"#F59E0B", zone:"drive"},
+  {id:"cashier",name:"Caisse / Order",  crew:0,  max:4,  color:"#A855F7", zone:"cashier"},
+  {id:"kiosk",  name:"NGK / Borne",     crew:0,  max:4,  color:"#06B6D4", zone:"kiosk"},
+  {id:"delivery",name:"Delivery Zone",  crew:0,  max:4,  color:"#3B82F6", zone:"delivery"},
+  {id:"sat",    name:"SAT",             crew:0,  max:10, color:"#22C55E", zone:"sat"},
+  {id:"accueil",name:"Accueil / GEL",   crew:0,  max:9,  color:"#FFC72C", zone:"accueil"},
+  {id:"lobby",  name:"Lobby / Salle",   crew:0,  max:6,  color:"#6B7280", zone:"lobby"},
+  {id:"mc",     name:"McCafé",          crew:0,  max:3,  color:"#F59E0B", zone:"mc"},
+];
+
+// Journée de référence — TC's réalisés par tranche (= Brief! M37:O47 dans l'Excel)
+// dlv = TC'S DLV, mc = TC'S MC Café, counter = TC'S counter, drive = TC'S drive, ngk = TC'S NGK, frites, boissons
+// gmal = TC'S GMAL (commandes via l'appli McDonald's), mop = TC'S MOP (Mobile Order & Pay)
+let refDay = [
+  {label:"12H", dlv:0, mc:0, counter:0, drive:0, ngk:0, frites:0, boissons:0, gmal:0, mop:0},
+  {label:"13H", dlv:0, mc:0, counter:0, drive:0, ngk:0, frites:0, boissons:0, gmal:0, mop:0},
+  {label:"14H", dlv:0, mc:0, counter:0, drive:0, ngk:0, frites:0, boissons:0, gmal:0, mop:0},
+];
+
+// Tranches horaires — Prévisions % (= Brief! lignes 17-19 + ratios calculés des lignes 26-56)
+// tcs15Max = "Tc's 1/4h plus élevé" (Brief!I17:I19, ex: "32***"), tcs15Stars = nb d'étoiles (intensité du pic)
+let hours = [
+  {startTime:"12:00",duration:60,gcPrevu:0,salesPrevu:0,sandwichPrevu:0,pmPrevu:0,effectifPrevu:0,kvsL1:0,kvsL2:null,kvsL3:null,kvsL4:null,r2p:0,oepe:0,tphe:0,moPct:0,tcs15Max:0,tcs15Stars:0},
+  {startTime:"13:00",duration:60,gcPrevu:0,salesPrevu:0,sandwichPrevu:0,pmPrevu:0,effectifPrevu:0,kvsL1:0,kvsL2:null,kvsL3:null,kvsL4:null,r2p:0,oepe:0,tphe:0,moPct:0,tcs15Max:0,tcs15Stars:0},
+  {startTime:"14:00",duration:60,gcPrevu:0,salesPrevu:0,sandwichPrevu:0,pmPrevu:0,effectifPrevu:0,kvsL1:0,kvsL2:null,kvsL3:null,kvsL4:null,r2p:0,oepe:0,tphe:0,moPct:0,tcs15Max:0,tcs15Stars:0},
+];
+
+// Calcule "12H00–13H00" à partir de startTime ("12:00") + duration (minutes)
+function hourLabel(h){
+  const [hh,mm]=h.startTime.split(':').map(Number);
+  const startMin=hh*60+mm;
+  const endMin=startMin+(h.duration||60);
+  const fmt=m=>{const H=Math.floor((m%1440)/60),M=m%60;return `${String(H).padStart(2,'0')}H${M?String(M).padStart(2,'0'):'00'}`};
+  return `${fmt(startMin)}–${fmt(endMin)}`;
+}
+// raccourci pour les chips/onglets compacts (ex: "12H")
+function hourShortLabel(h){
+  const [hh]=h.startTime.split(':').map(Number);
+  return `${hh}H`;
+}
+// Formate "Tc's 1/4h plus élevé" comme dans l'Excel: "32***" (valeur + étoiles d'intensité du pic)
+function tcs15Label(h){
+  const stars='*'.repeat(Math.max(0,Math.min(4,h.tcs15Stars||0)));
+  return `${h.tcs15Max||0}${stars}`;
+}
+let realises = hours.map(()=>({gc:"",sales:"",sandwich:"",pm:"",gmal:"",mop:"",kvsL1:"",kvsL2:"",kvsL3:"",kvsL4:"",r2p:"",oepe:"",tphe:"",moPct:"",effectifRealise:""}));
+// Positionnement INDÉPENDANT par tranche horaire : un jeu de postes (avec son propre crew par poste) pour chaque tranche.
+// posByHour[i] = tableau de postes pour la tranche i. "postes" reste un alias vers posByHour[activeHourIdx]
+// pour ne pas casser le reste du code (renderFloorMap, renderPosControls, adjustPos, autoPosition, PDF, etc.)
+let posByHour = hours.map(()=>POSTES_DEFAULT.map(p=>({...p})));
+let postes = posByHour[0];
+let objectifs = OBJECTIFS_DEFAULT.map(o=>({...o}));
+let cfg = {restaurant:"",date:"",refdate:"",manager:"",event:"",period:"",sales:0,gcs:0,pm:0,lines:0,presenter:0,crew:0,managers:0,rate:0};
+let activeHourIdx = 0; // tranche active pour le Positionnement (= "Heur:" dans Input(2))
+
+// Gabarits "vierges" figés une fois pour toutes, utilisés pour repartir d'un formulaire propre
+// quand on bascule vers une identité (Restaurant+Manager+Date+Shift) qui n'a encore aucune donnée.
+const HOURS_DEFAULT = JSON.parse(JSON.stringify(hours));
+const REFDAY_DEFAULT = JSON.parse(JSON.stringify(refDay));
+function blankRealises(n){
+  return Array.from({length:n},()=>({gc:"",sales:"",sandwich:"",pm:"",gmal:"",mop:"",kvsL1:"",kvsL2:"",kvsL3:"",kvsL4:"",r2p:"",oepe:"",tphe:"",moPct:"",effectifRealise:""}));
+}
+function blankHoursSet(){
+  const h=JSON.parse(JSON.stringify(HOURS_DEFAULT));
+  return {
+    hours:h,
+    refDay:JSON.parse(JSON.stringify(REFDAY_DEFAULT)),
+    objectifs:OBJECTIFS_DEFAULT.map(o=>({...o,actions:[...o.actions]})),
+    posByHour:h.map(()=>POSTES_DEFAULT.map(p=>({...p}))),
+    realises:blankRealises(h.length)
+  };
+}
+
+// ═══════════════════════════════════════════
+// HISTORIQUE — traçabilité des debriefs (persistant via localStorage)
+// ═══════════════════════════════════════════
+let history = [];
+try{
+  const saved = localStorage.getItem('crew-focus-history') || localStorage.getItem('outil-manager-history');
+  if(saved) history = JSON.parse(saved) || [];
+}catch(_){ history = []; }
+
+function saveHistory(){
+  try{ localStorage.setItem('crew-focus-history', JSON.stringify(history)); }catch(_){}
+}
+
+// ═══════════════════════════════════════════
+// LIAISON BRIEF ↔ DEBRIEF — persistance par Restaurant + Manager Shift + Date + Type de shift
+// Chaque Brief rempli est sauvegardé sous une clé unique (Restaurant|Manager|Date|Shift).
+// À l'ouverture du Debrief correspondant, les données du Brief sont retrouvées et rechargées
+// automatiquement — chaque manager retrouve ses propres données sans avoir à les ressaisir.
+// ═══════════════════════════════════════════
+const BRIEF_LINK_KEY = 'shiftpilot-briefs-v1';
+let currentBriefKey = null; // clé du Brief actuellement chargé en mémoire (évite les rechargements inutiles)
+
+// ═══════════════════════════════════════════
+// BROUILLON DE SESSION — conserve TOUT ce qui est saisi (même identité incomplète) pour que
+// fermer/rouvrir l'application (ou l'onglet) retrouve exactement là où on s'est arrêté.
+// Distinct de la liaison Brief↔Debrief ci-dessus, qui elle est indexée par identité complète.
+// ═══════════════════════════════════════════
+const CURRENT_STATE_KEY = 'shiftpilot-current-state-v1';
+let isRestoringState = false; // évite de ré-enregistrer pendant qu'on restaure
+
+function loadBriefStore(){
+  try{ return JSON.parse(localStorage.getItem(BRIEF_LINK_KEY)) || {}; }catch(_){ return {}; }
+}
+function saveBriefStore(store){
+  try{ localStorage.setItem(BRIEF_LINK_KEY, JSON.stringify(store)); }catch(_){}
+}
+// Clé unique = Restaurant + Manager de quart + Date + Type de shift (insensible à la casse / espaces)
+function briefKey(c){
+  if(!c.restaurant || !c.manager || !c.date || !c.period) return null;
+  const norm=v=>(v||'').toString().trim().toLowerCase();
+  return `${norm(c.restaurant)}||${norm(c.manager)}||${norm(c.date)}||${norm(c.period)}`;
+}
+// Relit les 4 champs d'identité directement depuis le formulaire Configuration (sans les effets de bord d'applySetup)
+function syncCfgIdentity(){
+  const rEl=document.getElementById('cfg-restaurant'), dEl=document.getElementById('cfg-date'),
+        mEl=document.getElementById('cfg-manager'), pEl=document.getElementById('cfg-period');
+  if(rEl) cfg.restaurant=rEl.value;
+  if(dEl) cfg.date=dEl.value;
+  if(mEl) cfg.manager=mEl.value;
+  if(pEl) cfg.period=pEl.value;
+}
+// Sauvegarde l'état courant du Brief (cfg + prévisions + objectifs + positionnement) sous sa clé Restaurant/Manager/Date/Shift
+function saveBriefSnapshot(){
+  if(isRestoringState) return;
+  syncCfgIdentity();
+  const key=briefKey(cfg);
+  if(!key) return; // identité incomplète (Restaurant/Manager/Date/Shift) : rien à lier pour l'instant
+  const store=loadBriefStore();
+  store[key]={
+    savedAt:new Date().toISOString(),
+    cfg:JSON.parse(JSON.stringify(cfg)),
+    hours:JSON.parse(JSON.stringify(hours)),
+    refDay:JSON.parse(JSON.stringify(refDay)),
+    objectifs:JSON.parse(JSON.stringify(objectifs)),
+    posByHour:JSON.parse(JSON.stringify(posByHour)),
+    realises:JSON.parse(JSON.stringify(realises)),
+    activeHourIdx
+  };
+  saveBriefStore(store);
+  currentBriefKey=key;
+}
+// Recherche et recharge le Brief correspondant à l'identité (Restaurant+Manager+Date+Shift) actuellement saisie.
+// Ne touche jamais aux "réalisés" du Debrief (realises) au-delà de leur alignement en nombre de tranches :
+// seules les données saisies dans le Brief (prévisions, objectifs, positionnement) sont rechargées.
+function tryLoadBriefSnapshot(){
+  syncCfgIdentity();
+  const key=briefKey(cfg);
+  if(!key) return false;
+  if(key===currentBriefKey) return false; // déjà chargé en mémoire pour cette identité
+  const store=loadBriefStore();
+  const snap=store[key];
+  if(!snap){
+    // Nouvelle identité (Restaurant+Manager+Date+Shift) sans Brief existant : on repart d'un
+    // formulaire vierge plutôt que de laisser les données d'un autre manager/shift en mémoire.
+    if(currentBriefKey && currentBriefKey!==key){
+      const blank=blankHoursSet();
+      hours=blank.hours; refDay=blank.refDay; objectifs=blank.objectifs;
+      posByHour=blank.posByHour; realises=blank.realises; activeHourIdx=0;
+      postes=posByHour[0];
+    }
+    currentBriefKey=key;
+    return false;
+  }
+  hours=JSON.parse(JSON.stringify(snap.hours||hours));
+  refDay=JSON.parse(JSON.stringify(snap.refDay||refDay));
+  objectifs=JSON.parse(JSON.stringify(snap.objectifs||objectifs));
+  if(snap.posByHour) posByHour=JSON.parse(JSON.stringify(snap.posByHour));
+  activeHourIdx=snap.activeHourIdx||0;
+  // Sécurité si le nombre de tranches diffère (positionnement)
+  while(posByHour.length<hours.length) posByHour.push(POSTES_DEFAULT.map(p=>({...p})));
+  if(posByHour.length>hours.length) posByHour.length=hours.length;
+  if(activeHourIdx>=hours.length) activeHourIdx=0;
+  postes=posByHour[activeHourIdx]||posByHour[0];
+  // Recharge les "réalisés" du Debrief propres à CETTE identité (Restaurant+Manager+Date+Shift)
+  realises=snap.realises?JSON.parse(JSON.stringify(snap.realises)):blankRealises(hours.length);
+  while(realises.length<hours.length) realises.push({gc:"",sales:"",sandwich:"",pm:"",gmal:"",mop:"",kvsL1:"",kvsL2:"",kvsL3:"",kvsL4:"",r2p:"",oepe:"",tphe:"",moPct:"",effectifRealise:""});
+  if(realises.length>hours.length) realises.length=hours.length;
+  ['sales','gcs','presenter','crew','managers','rate','event','refdate'].forEach(k=>{
+    if(snap.cfg && snap.cfg[k]!==undefined && snap.cfg[k]!=='') cfg[k]=snap.cfg[k];
+  });
+  currentBriefKey=key;
+  toast(`Brief de ${cfg.manager} — ${cfg.period} retrouvé, données rechargées ✓`,'var(--blue)');
+  return true;
+}
+
+// Se déclenche dès qu'un des 4 champs d'identité (Restaurant / Date / Manager / Shift) change
+// sur la page Configuration : bascule immédiatement vers le brouillon isolé de cette identité,
+// AVANT que le manager ne commence à saisir les prévisions par tranche. Ainsi deux managers qui
+// se succèdent (ex: Open puis Swing) ne se marchent jamais dessus : chacun a son propre espace
+// de travail dès qu'il renseigne son nom / sa date / son shift, sans attendre que l'autre ait
+// cliqué sur "Valider".
+function handleIdentityFieldChange(){
+  if(isRestoringState) return;
+  const oldKey=currentBriefKey; // clé correspondant aux données actuellement en mémoire (cfg pas encore resynchronisé)
+  if(oldKey){
+    const store=loadBriefStore();
+    store[oldKey]={
+      savedAt:new Date().toISOString(),
+      cfg:JSON.parse(JSON.stringify(cfg)),
+      hours:JSON.parse(JSON.stringify(hours)),
+      refDay:JSON.parse(JSON.stringify(refDay)),
+      objectifs:JSON.parse(JSON.stringify(objectifs)),
+      posByHour:JSON.parse(JSON.stringify(posByHour)),
+      realises:JSON.parse(JSON.stringify(realises)),
+      activeHourIdx
+    };
+    saveBriefStore(store);
+  }
+  syncCfgIdentity();
+  const newKey=briefKey(cfg);
+  if(newKey===oldKey) return; // même identité (ou toujours incomplète) : rien à faire
+  if(!newKey){ currentBriefKey=null; return; } // identité encore incomplète : on attend les autres champs
+  const store=loadBriefStore();
+  const snap=store[newKey];
+  if(snap){
+    hours=JSON.parse(JSON.stringify(snap.hours||hours));
+    refDay=JSON.parse(JSON.stringify(snap.refDay||refDay));
+    objectifs=JSON.parse(JSON.stringify(snap.objectifs||objectifs));
+    posByHour=snap.posByHour?JSON.parse(JSON.stringify(snap.posByHour)):posByHour;
+    activeHourIdx=snap.activeHourIdx||0;
+    realises=snap.realises?JSON.parse(JSON.stringify(snap.realises)):blankRealises(hours.length);
+    ['sales','gcs','presenter','crew','managers','rate','event','refdate'].forEach(k=>{
+      if(snap.cfg && snap.cfg[k]!==undefined && snap.cfg[k]!=='') cfg[k]=snap.cfg[k];
+    });
+    toast(`Brief de ${cfg.manager} — ${cfg.period} retrouvé ✓`,'var(--blue)');
+  } else {
+    const blank=blankHoursSet();
+    hours=blank.hours; refDay=blank.refDay; objectifs=blank.objectifs; posByHour=blank.posByHour;
+    realises=blank.realises; activeHourIdx=0;
+    toast(`Nouveau brief pour ${cfg.manager||'—'} · ${cfg.period||'—'} — formulaire vierge`,'var(--orange)');
+  }
+  while(posByHour.length<hours.length) posByHour.push(POSTES_DEFAULT.map(p=>({...p})));
+  if(posByHour.length>hours.length) posByHour.length=hours.length;
+  if(activeHourIdx>=hours.length) activeHourIdx=0;
+  postes=posByHour[activeHourIdx]||posByHour[0];
+  while(realises.length<hours.length) realises.push({gc:"",sales:"",sandwich:"",pm:"",gmal:"",mop:"",kvsL1:"",kvsL2:"",kvsL3:"",kvsL4:"",r2p:"",oepe:"",tphe:"",moPct:"",effectifRealise:""});
+  if(realises.length>hours.length) realises.length=hours.length;
+  const setVal=(id,v)=>{ const el=document.getElementById(id); if(el) el.value=nv(v); };
+  setVal('cfg-refdate',cfg.refdate); setVal('cfg-sales',cfg.sales); setVal('cfg-gcs',cfg.gcs);
+  setVal('cfg-presenter',cfg.presenter); setVal('cfg-crew',cfg.crew); setVal('cfg-managers',cfg.managers); setVal('cfg-rate',cfg.rate);
+  currentBriefKey=newKey;
+  renderSetupHours(); renderRefDaySetup(); renderDigitalSetup(); renderSpeedSetup();
+}
+
+// ── Outils DOM pour le brouillon de session ──
+function getActivePageId(){
+  const el=document.querySelector('.page.active');
+  return el ? el.id.replace('page-','') : 'setup';
+}
+const SETUP_FIELD_IDS=['cfg-restaurant','cfg-date','cfg-refdate','cfg-manager','cfg-event','cfg-period','cfg-sales','cfg-gcs','cfg-presenter','cfg-crew','cfg-managers','cfg-rate'];
+const DEBRIEF_NOTE_IDS=['db-positifs','db-amelio','db-next'];
+function collectFieldsFromDOM(ids){
+  const out={};
+  ids.forEach(id=>{ const el=document.getElementById(id); if(el) out[id]=el.value; });
+  return out;
+}
+function applyFieldsToDOM(fields){
+  if(!fields) return;
+  Object.keys(fields).forEach(id=>{ const el=document.getElementById(id); if(el) el.value=fields[id]; });
+}
+function debounce(fn,wait){
+  let t;
+  return function(...args){ clearTimeout(t); t=setTimeout(()=>fn.apply(this,args),wait); };
+}
+
+// Sauvegarde l'intégralité de l'état courant (identité complète ou non) pour reprise après fermeture de l'app
+function saveCurrentState(){
+  if(isRestoringState) return;
+  try{
+    const state={
+      savedAt:new Date().toISOString(),
+      activePage:getActivePageId(),
+      setupFields:collectFieldsFromDOM(SETUP_FIELD_IDS),
+      debriefNotes:collectFieldsFromDOM(DEBRIEF_NOTE_IDS),
+      cfg:JSON.parse(JSON.stringify(cfg)),
+      hours:JSON.parse(JSON.stringify(hours)),
+      refDay:JSON.parse(JSON.stringify(refDay)),
+      objectifs:JSON.parse(JSON.stringify(objectifs)),
+      posByHour:JSON.parse(JSON.stringify(posByHour)),
+      activeHourIdx,
+      realises:JSON.parse(JSON.stringify(realises))
+    };
+    localStorage.setItem(CURRENT_STATE_KEY, JSON.stringify(state));
+  }catch(_){}
+}
+const debouncedSaveCurrentState=debounce(saveCurrentState,350);
+
+// Restaure la session précédente au chargement de la page (F5, fermeture/réouverture de l'app, etc.)
+function restoreCurrentState(){
+  let raw;
+  try{ raw=localStorage.getItem(CURRENT_STATE_KEY); }catch(_){ raw=null; }
+  if(!raw) return;
+  let state;
+  try{ state=JSON.parse(raw); }catch(_){ return; }
+  if(!state) return;
+  isRestoringState=true;
+  try{
+    applyFieldsToDOM(state.setupFields);
+    if(state.hours && state.hours.length) hours=state.hours;
+    if(state.refDay && state.refDay.length) refDay=state.refDay;
+    if(state.objectifs && state.objectifs.length) objectifs=state.objectifs;
+    if(state.posByHour && state.posByHour.length) posByHour=state.posByHour;
+    activeHourIdx=state.activeHourIdx||0;
+    while(posByHour.length<hours.length) posByHour.push(POSTES_DEFAULT.map(p=>({...p})));
+    if(posByHour.length>hours.length) posByHour.length=hours.length;
+    if(activeHourIdx>=hours.length) activeHourIdx=0;
+    postes=posByHour[activeHourIdx]||posByHour[0];
+    if(state.realises && state.realises.length) realises=state.realises;
+    while(realises.length<hours.length) realises.push({gc:"",sales:"",sandwich:"",pm:"",gmal:"",mop:"",kvsL1:"",kvsL2:"",kvsL3:"",kvsL4:"",r2p:"",oepe:"",tphe:"",moPct:"",effectifRealise:""});
+    if(realises.length>hours.length) realises.length=hours.length;
+
+    // Recalcule cfg à partir des champs du formulaire qui viennent d'être restaurés
+    syncCfgIdentity();
+    cfg.refdate=document.getElementById('cfg-refdate').value;
+    cfg.event=document.getElementById('cfg-event').value;
+    cfg.sales=+document.getElementById('cfg-sales').value||0;
+    cfg.gcs=+document.getElementById('cfg-gcs').value||0;
+    cfg.pm=cfg.gcs?+(cfg.sales/cfg.gcs).toFixed(2):0;
+    cfg.presenter=+document.getElementById('cfg-presenter').value||0;
+    cfg.crew=+document.getElementById('cfg-crew').value||0;
+    cfg.managers=+document.getElementById('cfg-managers').value||0;
+    cfg.rate=+document.getElementById('cfg-rate').value||0;
+
+    // Marque cette identité comme déjà à jour, pour qu'un ancien Brief lié ne vienne pas
+    // écraser le brouillon qu'on vient de restaurer dès le premier changement de page.
+    currentBriefKey=briefKey(cfg);
+
+    renderSetupHours(); renderRefDaySetup(); renderDigitalSetup(); renderSpeedSetup();
+    goPage(state.activePage||'setup');
+    applyFieldsToDOM(state.debriefNotes);
+    toast('Session précédente restaurée ✓','var(--blue)');
+  }catch(err){ console.error('Erreur restauration de session:',err); }
+  isRestoringState=false;
+}
+
+// ═══════════════════════════════════════════
+// MOTEUR DE FORMULES — reproduit les chemins Brief / Input (2) de l'Excel
+// ═══════════════════════════════════════════
+
+// Brief!M39:O47 → totaux & ratios de la journée de référence, par tranche
+function refRatios(i){
+  const r=refDay[i]||refDay[0];
+  const mc=r.mc||0; // Brief!M36 'TC'S MC Café' — saisissable
+  // Brief!M43 = M37(DLV) + M38(AC) + M40(Counter) + M41(Drive) + M42(NGK) (+M36 MC)
+  const total=r.dlv+r.counter+r.drive+r.ngk+mc;
+  const totalInstore=r.counter+r.ngk; // Brief!M39 = M40+M42 (Counter+NGK)
+  return {
+    pctDrive: total? r.drive/total : 0,         // Brief!C35 = M41/M43
+    pctCaissePC: total? r.counter/total : 0,    // Brief!C37 = M40/M43
+    pctNgk: total? r.ngk/total : 0,             // Brief!C41 = M42/M43
+    pctDelivery: total? r.dlv/total : 0,        // Brief!C43 = M37/M43
+    pctMc: total? mc/total : 0,                 // Brief!C45 = M36/M43
+    _frites: r.frites,   // brut pour calcul dans tranche()
+    _boissons: r.boissons, // brut pour calcul dans tranche()
+    ngkInstoreShare: totalInstore? r.ngk/totalInstore : 0, // Brief!C56 = M42/M39
+    total, totalInstore
+  };
+}
+
+// Brief!C39 = 100% - (Drive+CaissePC+NGK+Delivery+MC) → "% Tc's AC"
+function pctAC(i){
+  const rr=refRatios(i);
+  return Math.max(0,1-(rr.pctDrive+rr.pctCaissePC+rr.pctNgk+rr.pctDelivery+rr.pctMc));
+}
+
+// Brief!C30 = Sandwich prévu / TC prévu → "Nbr Sandwichs/Tc's"
+function sandwichsParGc(i){
+  const h=hours[i];
+  return h.gcPrevu? h.sandwichPrevu/h.gcPrevu : 0;
+}
+
+// Ratios complets d'une tranche (utilisés par le Brief ET par Input(2)/Positionnement)
+function tranche(i){
+  const h=hours[i];
+  const rr=refRatios(i);
+  const ac=pctAC(i);
+  const sw=sandwichsParGc(i);
+  return {
+    ...h, ...rr, pctAC:ac, sandwichsParGc:sw,
+    fritesParGc: h.gcPrevu? rr._frites/h.gcPrevu : 0,   // Frites / TC's prévu (comme Sandwich)
+    boissonsParGc: h.gcPrevu? rr._boissons/h.gcPrevu : 0, // Boissons / TC's prévu (comme Sandwich)
+    tcsDrive: rr.pctDrive*h.gcPrevu,
+    tcsCaissePC: rr.pctCaissePC*h.gcPrevu,
+    tcsAC: ac*h.gcPrevu,
+    tcsNgk: rr.pctNgk*h.gcPrevu,
+    tcsDelivery: rr.pctDelivery*h.gcPrevu,
+    tcsMc: rr.pctMc*h.gcPrevu,
+    nbrArticlesParGc: (h.gcPrevu? rr._frites/h.gcPrevu : 0) + sw + (h.gcPrevu? rr._boissons/h.gcPrevu : 0), // Brief!C26
+  };
+}
+
+// ═══════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════
+function goPage(id){
+  // Sauvegarde automatique (brouillon complet + liaison Brief/Debrief) avant tout changement de page
+  saveBriefSnapshot();
+  saveCurrentState();
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(b=>b.classList.remove('active'));
+  document.getElementById('page-'+id).classList.add('active');
+  document.getElementById('ntab-'+id).classList.add('active');
+  // En arrivant sur le Brief ou le Debrief, on retrouve automatiquement les données déjà saisies
+  // pour ce Restaurant + Manager + Date + Shift, si elles existent.
+  if(id==='brief'){ tryLoadBriefSnapshot(); renderBrief(); }
+  if(id==='positionnement') renderPositionnement();
+  if(id==='debrief'){ tryLoadBriefSnapshot(); renderDebrief(); }
+  if(id==='historique') renderHistorique();
+}
+// Filet de sécurité : sauvegarde également si l'onglet/app est fermé sans navigation explicite
+window.addEventListener('beforeunload', ()=>{ saveBriefSnapshot(); saveCurrentState(); });
+// Sauvegarde en continu (débouncée) dès qu'une valeur change ou qu'un bouton est cliqué (+/-, ajout, suppression...)
+document.addEventListener('input', debouncedSaveCurrentState, true);
+document.addEventListener('change', debouncedSaveCurrentState, true);
+document.addEventListener('click', debouncedSaveCurrentState, true);
+
+// ═══════════════════════════════════════════
+// SETUP
+// ═══════════════════════════════════════════
+// Affiche une valeur numérique dans un input: si elle vaut 0/null/undefined, retourne vide (avec 0 en placeholder)
+// pour que l'utilisateur puisse saisir directement sans effacer un zéro au préalable.
+function nv(v){return (v===0||v===null||v===undefined||v==='')?'':v}
+
+function renderSetupHours(){
+  const c=document.getElementById('hours-setup');
+  c.innerHTML='';
+  hours.forEach((h,i)=>{
+    const r=refDay[i]||{frites:0,boissons:0};
+    const wrap=document.createElement('div');
+    wrap.style.cssText='border:1px solid var(--border);border-radius:10px;padding:12px;margin-bottom:12px';
+
+    const timeRow=document.createElement('div');
+    timeRow.className='time-row';
+    timeRow.innerHTML=`
+      <div class="field"><label>Heure de début</label><input id="timeinput-setup-${i}" type="time" value="${h.startTime}" onchange="hours[${i}].startTime=this.value;syncHourLabels(${i})"></div>
+      <div class="time-row-label" id="hourlabel-setup-${i}">${hourLabel(h)}</div>`;
+    wrap.appendChild(timeRow);
+
+    const row=document.createElement('div');
+    row.style.cssText='display:grid;grid-template-columns:repeat(7,1fr);gap:10px;align-items:end';
+    row.innerHTML=`
+      <div class="field"><label>TC's prévus</label><input type="number" value="${nv(h.gcPrevu)}" placeholder="0" oninput="hours[${i}].gcPrevu=+this.value;syncHourPm(${i});syncTphe(${i});renderSpeedSetup()"></div>
+      <div class="field"><label>Sales (MAD)</label><input type="number" value="${nv(h.salesPrevu)}" placeholder="0" oninput="hours[${i}].salesPrevu=+this.value;syncHourPm(${i});syncMoPct(${i})"></div>
+      <div class="field"><label>PM cible</label><input id="hour-pm-setup-${i}" type="number" value="${nv(h.pmPrevu)}" placeholder="0" readonly style="background:var(--s2);cursor:not-allowed;opacity:.85" title="Calculé automatiquement = Sales / TC's"></div>
+      <div class="field"><label>NBR DE Effectif</label><input type="number" value="${nv(h.effectifPrevu)}" placeholder="0" oninput="hours[${i}].effectifPrevu=+this.value;syncMoPct(${i});syncTphe(${i})"></div>
+      <div class="field"><label>NBR DE Frites</label><input type="number" value="${nv(r.frites)}" placeholder="0" oninput="refDay[${i}].frites=+this.value"></div>
+      <div class="field"><label>NBR DE Boissons</label><input type="number" value="${nv(r.boissons)}" placeholder="0" oninput="refDay[${i}].boissons=+this.value"></div>
+      <div class="field"><label>NBR DE Sandwichs</label><input type="number" value="${nv(h.sandwichPrevu)}" placeholder="0" oninput="hours[${i}].sandwichPrevu=+this.value;syncNbrLignes(${i});renderSpeedSetup()"></div>`;
+    wrap.appendChild(row);
+
+    const peakRow=document.createElement('div');
+    peakRow.style.cssText='display:grid;grid-template-columns:1fr 1fr 1.6fr 1fr;gap:10px;align-items:end;margin-top:10px';
+    peakRow.innerHTML=`
+      <div class="field"><label>TC's 1/4h plus élevé</label><input type="number" value="${nv(h.tcs15Max)}" placeholder="0" oninput="hours[${i}].tcs15Max=+this.value;syncPeakLabel(${i})"></div>
+      <div class="field"><label>Étoiles (intensité)</label>
+        <select onchange="hours[${i}].tcs15Stars=+this.value;syncPeakLabel(${i})">
+          <option value="1" ${h.tcs15Stars===1?'selected':''}>★ (1)</option>
+          <option value="2" ${h.tcs15Stars===2?'selected':''}>★★ (2)</option>
+          <option value="3" ${h.tcs15Stars===3?'selected':''}>★★★ (3)</option>
+          <option value="4" ${h.tcs15Stars===4?'selected':''}>★★★★ (4)</option>
+        </select>
+      </div>
+      <div class="time-row-label" id="peaklabel-${i}">Pic 1/4h: ${tcs15Label(h)}</div>
+      <div class="field"><label>Nbr de lignes</label>
+        <input id="nbrlignes-display-${i}" type="text" value="${nbrLignes(h.sandwichPrevu)}" placeholder="—" readonly style="background:var(--s2);cursor:not-allowed;opacity:.85;text-align:center;font-weight:700" title="Calculé automatiquement à partir des Sandwichs prévus de la tranche">
+      </div>`;
+    wrap.appendChild(peakRow);
+
+    c.appendChild(wrap);
+    syncHourPm(i);
+  });
+}
+renderSetupHours();
+
+// PM cible par tranche = Sales prévus / TC's prévus de la tranche (calcul automatique)
+function syncHourPm(i){
+  const h = hours[i];
+  if(!h) return;
+  h.pmPrevu = h.gcPrevu ? +(h.salesPrevu / h.gcPrevu).toFixed(2) : 0;
+  const el = document.getElementById('hour-pm-setup-'+i);
+  if(el) el.value = nv(h.pmPrevu);
+}
+
+// M.O% par tranche = (effectifPrevu × taux horaire moyen) / salesPrevu × 100 (calcul automatique)
+function syncMoPct(i){
+  const h = hours[i];
+  if(!h) return;
+  const rate = +document.getElementById('cfg-rate').value || 0;
+  const mo = (h.salesPrevu && rate) ? +((h.effectifPrevu * rate) / h.salesPrevu * 100).toFixed(2) : 0;
+  h.moPct = mo;
+  const el = document.getElementById('speed-mo-'+i);
+  if(el) el.value = mo ? mo : '';
+}
+
+// Recalcule M.O% pour toutes les tranches (appelé quand le taux horaire change)
+function syncAllMoPct(){
+  hours.forEach((_,i) => syncMoPct(i));
+}
+
+// Nbr de lignes recommandé en fonction des Sandwichs prévus de la tranche
+// <125 -> 1 | 125-257 -> 2 | 258-490 -> 3 | >490 -> 4
+// Retourne '' (vide) si Sandwichs prévus n'est pas encore rempli
+function nbrLignes(sandwichPrevu){
+  if(!sandwichPrevu) return '';
+  const v = sandwichPrevu;
+  if(v < 125) return 1;
+  if(v <= 257) return 2;
+  if(v <= 490) return 3;
+  return 4;
+}
+
+// Met à jour l'affichage "Nbr de lignes" pour la tranche i, à partir des Sandwichs prévus
+function syncNbrLignes(i){
+  const h = hours[i];
+  if(!h) return;
+  const el = document.getElementById('nbrlignes-display-'+i);
+  if(el) el.value = nbrLignes(h.sandwichPrevu);
+}
+
+// PM cible global = Sales prévisionnels / TC's prévisionnels (calcul automatique)
+function syncPmCible(){
+  const sales = +document.getElementById('cfg-sales').value || 0;
+  const gcs = +document.getElementById('cfg-gcs').value || 0;
+  const pm = gcs ? +(sales / gcs).toFixed(2) : 0;
+  document.getElementById('cfg-pm').value = nv(pm);
+}
+syncPmCible();
+
+// ═══════════════════════════════════════════
+// HORLOGE DIGITALE — barre de navigation
+// ═══════════════════════════════════════════
+function updateNavClock(){
+  const el = document.getElementById('nav-clock');
+  if(!el) return;
+  const now = new Date();
+  const hh = String(now.getHours()).padStart(2,'0');
+  const mm = String(now.getMinutes()).padStart(2,'0');
+  const ss = String(now.getSeconds()).padStart(2,'0');
+  el.textContent = `${hh}:${mm}:${ss}`;
+}
+updateNavClock();
+setInterval(updateNavClock, 1000);
+
+// Met à jour les labels calculés + l'input miroir (autre tableau), sans redessiner le DOM (préserve le focus)
+function syncHourLabels(i){
+  const h=hours[i];
+  const elSetup=document.getElementById(`hourlabel-setup-${i}`);
+  if(elSetup) elSetup.textContent=hourLabel(h);
+  const inputSetup=document.getElementById(`timeinput-setup-${i}`);
+  if(inputSetup && inputSetup.value!==h.startTime) inputSetup.value=h.startTime;
+  const elRef=document.getElementById(`reflabel-${i}`);
+  if(elRef) elRef.textContent=hourLabel(h);
+  const elDigital=document.getElementById(`digitallabel-${i}`);
+  if(elDigital) elDigital.textContent=hourLabel(h);
+  const elSpeed=document.getElementById(`speedlabel-${i}`);
+  if(elSpeed) elSpeed.textContent=hourLabel(h);
+}
+// Met à jour uniquement le label "Pic 1/4h: ..." sans redessiner les inputs
+function syncPeakLabel(i){
+  const el=document.getElementById(`peaklabel-${i}`);
+  if(el) el.textContent=`Pic 1/4h: ${tcs15Label(hours[i])}`;
+}
+
+
+function addHour(){
+  // démarre 1h (ou la durée de la dernière tranche) après la fin de la dernière tranche existante
+  const last=hours[hours.length-1];
+  let startTime="15:00", dur=60;
+  if(last){
+    const [hh,mm]=last.startTime.split(':').map(Number);
+    const endMin=hh*60+mm+(last.duration||60);
+    startTime=`${String(Math.floor(endMin/60)%24).padStart(2,'0')}:${String(endMin%60).padStart(2,'0')}`;
+    dur=last.duration||60;
+  }
+  hours.push({startTime,duration:dur,gcPrevu:0,salesPrevu:0,sandwichPrevu:0,pmPrevu:0,effectifPrevu:0,kvsL1:0,kvsL2:null,kvsL3:null,kvsL4:null,r2p:0,oepe:0,tphe:0,moPct:0,tcs15Max:0,tcs15Stars:0});
+  realises.push({gc:"",sales:"",sandwich:"",pm:"",gmal:"",mop:"",kvsL1:"",kvsL2:"",kvsL3:"",kvsL4:"",r2p:"",oepe:"",tphe:"",moPct:""});
+  refDay.push({dlv:0,mc:0,counter:0,drive:0,ngk:0,frites:0,boissons:0,gmal:0,mop:0});
+  posByHour.push(POSTES_DEFAULT.map(p=>({...p})));
+  renderSetupHours();
+  renderRefDaySetup();
+  renderDigitalSetup();
+  renderSpeedSetup();
+}
+function removeHour(i){if(hours.length<=1){toast("Au moins 1 tranche requise","var(--orange)");return}hours.splice(i,1);realises.splice(i,1);refDay.splice(i,1);posByHour.splice(i,1);if(activeHourIdx>=hours.length)activeHourIdx=hours.length-1;postes=posByHour[activeHourIdx];renderSetupHours();renderRefDaySetup();renderDigitalSetup();renderSpeedSetup()}
+
+// Recalcule le NGK% (= TC'S NGK / Total Instore) affiché dans le tableau de Configuration, sans redessiner (préserve le focus)
+function syncSpeedNgk(i){
+  const el=document.getElementById(`speed-ngk-${i}`);
+  if(!el) return;
+  el.value=(tranche(i).ngkInstoreShare*100).toFixed(1)+'%';
+}
+
+function renderRefDaySetup(){
+  const c=document.getElementById('refday-setup');
+  if(!c) return;
+  c.innerHTML='';
+  refDay.forEach((r,i)=>{
+    const h=hours[i];
+    const row=document.createElement('div');
+    row.style.cssText='display:grid;grid-template-columns:1fr repeat(6,1fr);gap:10px;align-items:end;margin-bottom:10px';
+    row.innerHTML=`
+      <div class="field"><div class="time-row-label" id="reflabel-${i}" style="padding-top:6px">${h?hourLabel(h):''}</div></div>
+      <div class="field"><label>TC's DLV</label><input type="number" value="${nv(r.dlv)}" placeholder="0" oninput="refDay[${i}].dlv=+this.value"></div>
+      <div class="field"><label>TC's Counter</label><input type="number" value="${nv(r.counter)}" placeholder="0" oninput="refDay[${i}].counter=+this.value;syncSpeedNgk(${i})"></div>
+      <div class="field"><label>TC's Drive</label><input type="number" value="${nv(r.drive)}" placeholder="0" oninput="refDay[${i}].drive=+this.value"></div>
+      <div class="field"><label>TC's NGK</label><input type="number" value="${nv(r.ngk)}" placeholder="0" oninput="refDay[${i}].ngk=+this.value;syncSpeedNgk(${i})"></div>
+      <div class="field"><label>TC's McCafé</label><input type="number" value="${nv(r.mc)}" placeholder="0" oninput="refDay[${i}].mc=+this.value"></div>`;
+    c.appendChild(row);
+  });
+}
+renderRefDaySetup();
+
+function renderDigitalSetup(){
+  const c=document.getElementById('digital-setup');
+  if(!c) return;
+  c.innerHTML='';
+  refDay.forEach((r,i)=>{
+    const h=hours[i];
+    const row=document.createElement('div');
+    row.style.cssText='display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;align-items:end;margin-bottom:10px';
+    row.innerHTML=`
+      <div class="time-row-label" id="digitallabel-${i}">${h?hourLabel(h):''}</div>
+      <div class="field"><label>NBR TC's GMAL</label><input type="number" value="${nv(r.gmal)}" placeholder="0" oninput="refDay[${i}].gmal=+this.value"></div>
+      <div class="field"><label>NBR TC's MOP</label><input type="number" value="${nv(r.mop)}" placeholder="0" oninput="refDay[${i}].mop=+this.value"></div>`;
+    c.appendChild(row);
+  });
+}
+renderDigitalSetup();
+
+// Tableau "Indicateurs vitesse & pilotage" — KVS TIME Ligne 1-4 / R2P (90s) / OEPE Drive (120s) / TPHE / M.O % / NGK, par tranche
+function renderSpeedSetup(){
+  const c=document.getElementById('speed-setup-body');
+  if(!c) return;
+  c.innerHTML='';
+  const lbl=document.getElementById('speed-refdate-label');
+  if(lbl) lbl.textContent=``;
+
+  // Nombre de lignes max parmi toutes les tranches (selon TC's prévus) → pilote les en-têtes de colonnes KVS visibles
+  const maxLignes = hours.reduce((m,h)=>Math.max(m, nbrLignes(h.sandwichPrevu)||0), 0);
+  const head=document.getElementById('speed-setup-head');
+  if(head){
+    head.querySelectorAll('[data-kvscol]').forEach(th=>{
+      const n=+th.getAttribute('data-kvscol');
+      th.style.display = n<=maxLignes ? '' : 'none';
+    });
+  }
+
+  hours.forEach((h,i)=>{
+    const ngkPct=(tranche(i).ngkInstoreShare*100).toFixed(1);
+    const nl = nbrLignes(h.sandwichPrevu)||0; // nombre de lignes actives pour cette tranche (selon Sandwichs prévus)
+    // Champ visible+saisissable seulement si son numéro de ligne <= nbr de lignes de la tranche, sinon cellule vide
+    // et la colonne entière (avec son en-tête) est masquée si AUCUNE tranche n'a besoin de cette ligne
+    const kvsCell = (n,field) => {
+      if(n>maxLignes) return ''; // colonne masquée globalement
+      return (nl>=n)
+        ? `<input type="number" value="${nv(h[field])}" placeholder="0" oninput="hours[${i}].${field}=+this.value">`
+        : '';
+    };
+    const kvsTd = (n,field) => `<td style="${n>maxLignes?'display:none':''}">${kvsCell(n,field)}</td>`;
+    const row=document.createElement('tr');
+    row.innerHTML=`
+      <td><span id="speedlabel-${i}" style="color:var(--gold);font-weight:800">${hourLabel(h)}</span></td>
+      ${kvsTd(1,'kvsL1')}
+      ${kvsTd(2,'kvsL2')}
+      ${kvsTd(3,'kvsL3')}
+      ${kvsTd(4,'kvsL4')}
+      <td><input type="number" value="${nv(h.r2p)}" placeholder="0" oninput="hours[${i}].r2p=+this.value"></td>
+      <td><input type="number" value="${nv(h.oepe)}" placeholder="0" oninput="hours[${i}].oepe=+this.value"></td>
+      <td><input type="number" step="0.01" id="speed-tphe-${i}" value="${nv(h.tphe)}" placeholder="—" readonly style="background:var(--s2);cursor:not-allowed;opacity:.85;font-weight:700;text-align:center" title="Calculé automatiquement : TC's prévus / Effectif prévu"></td>
+      <td><input type="number" step="0.01" id="speed-mo-${i}" value="${nv(h.moPct)}" placeholder="—" readonly style="background:var(--s2);cursor:not-allowed;opacity:.85;font-weight:700;text-align:center" title="Calculé automatiquement : (Effectif × Taux horaire) / Sales × 100"></td>
+      <td><input type="text" id="speed-ngk-${i}" value="${ngkPct}%" readonly style="background:var(--s2);cursor:not-allowed;opacity:.85;font-weight:700" title="Calculé automatiquement = TC'S NGK / Total TC'S Instore (Counter + NGK), depuis la Journée de référence"></td>`;
+    c.appendChild(row);
+  });
+}
+renderSpeedSetup();
+
+function applySetup(){
+  cfg.restaurant=document.getElementById('cfg-restaurant').value;
+  cfg.date=document.getElementById('cfg-date').value;
+  cfg.refdate=document.getElementById('cfg-refdate').value;
+  cfg.manager=document.getElementById('cfg-manager').value;
+  cfg.event=document.getElementById('cfg-event').value;
+  cfg.period=document.getElementById('cfg-period').value;
+  cfg.sales=+document.getElementById('cfg-sales').value;
+  cfg.gcs=+document.getElementById('cfg-gcs').value;
+  cfg.pm=cfg.gcs?+(cfg.sales/cfg.gcs).toFixed(2):0;
+  cfg.presenter=+document.getElementById('cfg-presenter').value;
+  cfg.crew=+document.getElementById('cfg-crew').value;
+  cfg.managers=+document.getElementById('cfg-managers').value;
+  cfg.rate=+document.getElementById('cfg-rate').value;
+  // Si un Brief existe déjà pour ce Restaurant + Manager + Date + Shift, on le recharge
+  // (au lieu de repartir d'un Brief vierge) et on resynchronise le formulaire Configuration.
+  const found=tryLoadBriefSnapshot();
+  if(found){
+    const setVal=(id,v)=>{ const el=document.getElementById(id); if(el) el.value=nv(v); };
+    setVal('cfg-refdate',cfg.refdate);
+    setVal('cfg-sales',cfg.sales);
+    setVal('cfg-gcs',cfg.gcs);
+    setVal('cfg-presenter',cfg.presenter);
+    setVal('cfg-crew',cfg.crew);
+    setVal('cfg-managers',cfg.managers);
+    setVal('cfg-rate',cfg.rate);
+    renderSetupHours(); renderRefDaySetup(); renderDigitalSetup(); renderSpeedSetup();
+  } else {
+    saveBriefSnapshot(); // amorce l'entrée liée à cette identité (Restaurant+Manager+Date+Shift)
+  }
+  toast(found?`Brief existant de ${cfg.manager} retrouvé — données rechargées ✓`:"Configuration sauvegardée ✓");
+  goPage('brief');
+}
+
+// Réinitialisation globale : efface les données de TOUS les managers (tous les Briefs
+// liés via Restaurant+Manager+Date+Période, ainsi que le brouillon de session en cours),
+// ET vide explicitement tous les champs du formulaire actuellement affiché — y compris la
+// carte "Objectifs du jour" (Sales/TC's prévisionnels, PM cible, Nbr de présenter).
+// On ne se contente pas d'un location.reload() : certains navigateurs restaurent
+// automatiquement les valeurs précédemment saisies dans les champs après un rechargement
+// (comportement "sticky form"), ce qui empêchait ces champs d'apparaître vides.
+// L'Historique des shifts exportés (protégé par mot de passe) n'est volontairement pas touché.
+function resetAll(){
+  if(!confirm("⚠️ Réinitialiser TOUTES les données ?\n\nCela effacera la saisie de TOUS les managers (tous les Briefs enregistrés, quel que soit le Restaurant/Manager/Date/Période), ainsi que la session en cours.\n\nL'historique des shifts déjà exportés en PDF n'est pas affecté.\n\nCette action est irréversible.")) return;
+
+  // 1) Efface les données persistées (localStorage) de tous les managers
+  try{
+    localStorage.removeItem(BRIEF_LINK_KEY);
+    localStorage.removeItem(CURRENT_STATE_KEY);
+  }catch(_){}
+
+  // 2) Remet à zéro tout l'état en mémoire (cfg + hours + refDay + objectifs + positionnement + réalisés)
+  cfg = {restaurant:"",date:"",refdate:"",manager:"",event:"",period:"",sales:0,gcs:0,pm:0,lines:0,presenter:0,crew:0,managers:0,rate:0};
+  const blank=blankHoursSet();
+  hours=blank.hours;
+  refDay=blank.refDay;
+  objectifs=blank.objectifs;
+  posByHour=blank.posByHour;
+  realises=blank.realises;
+  activeHourIdx=0;
+  postes=posByHour[0];
+  currentBriefKey=null;
+
+  // 3) Vide explicitement TOUS les champs du formulaire Configuration, y compris la
+  // carte "Objectifs du jour" (Sales prévisionnels, TC's prévisionnels, PM cible, Nbr de présenter)
+  const clearVal=(id)=>{ const el=document.getElementById(id); if(el) el.value=''; };
+  SETUP_FIELD_IDS.forEach(clearVal);
+  clearVal('cfg-pm');
+  DEBRIEF_NOTE_IDS.forEach(clearVal);
+
+  // 4) Redessine toutes les cartes de la Configuration avec les données vierges
+  renderSetupHours();
+  renderRefDaySetup();
+  renderDigitalSetup();
+  renderSpeedSetup();
+  syncPmCible();
+
+  // 5) Revient sur la page Configuration, formulaire entièrement vierge
+  goPage('setup');
+
+  toast("Toutes les données ont été réinitialisées ✓","var(--blue)");
+}
+
+// ═══════════════════════════════════════════
+// NOUVEAU REMPLISSAGE — vide toutes les données saisies (prévisions, journée de
+// référence, objectifs, positionnement, réalisés) ainsi que l'identité du manager
+// (Manager, Date, Événement/Météo, Période), en ne conservant QUE le nom du
+// Restaurant. Les managers qui ont déjà rempli et validé leur brief ne sont pas
+// impactés : dès qu'ils resaisissent leur propre Manager + Date + Période, le
+// mécanisme de liaison Brief↔Debrief (tryLoadBriefSnapshot) retrouve automatiquement
+// leurs données pour qu'ils puissent poursuivre leur debrief.
+// ═══════════════════════════════════════════
+function nouveauRemplissage(){
+  if(!confirm("Vider tous les champs remplis (Manager, Date, Événement, Période, prévisions, journée de référence, objectifs, positionnement, réalisés) ?\n\nSeul le Restaurant sera conservé.\n\nLes managers ayant déjà validé leur brief pourront toujours retrouver leurs données en resaisissant leur nom, leur date et leur période.")) return;
+
+  // 1) Repart d'un jeu de données vierge (hours, refDay, objectifs, posByHour, realises)
+  const blank=blankHoursSet();
+  hours=blank.hours;
+  refDay=blank.refDay;
+  objectifs=blank.objectifs;
+  posByHour=blank.posByHour;
+  realises=blank.realises;
+  activeHourIdx=0;
+  postes=posByHour[0];
+
+  // 2) Vide l'identité (sauf Restaurant) et les champs numériques/objectifs du jour
+  cfg.manager=""; cfg.date=""; cfg.event=""; cfg.period="";
+  cfg.refdate="";
+  cfg.sales=0; cfg.gcs=0; cfg.pm=0; cfg.presenter=0;
+  cfg.crew=0; cfg.managers=0; cfg.rate=0;
+
+  // 3) Remet à zéro les champs du formulaire Configuration (sauf Restaurant)
+  const clearVal=(id)=>{ const el=document.getElementById(id); if(el) el.value=''; };
+  clearVal('cfg-manager');
+  clearVal('cfg-date');
+  clearVal('cfg-event');
+  clearVal('cfg-period');
+  clearVal('cfg-refdate');
+  clearVal('cfg-sales');
+  clearVal('cfg-gcs');
+  clearVal('cfg-pm');
+  clearVal('cfg-presenter');
+  clearVal('cfg-crew');
+  clearVal('cfg-managers');
+  clearVal('cfg-rate');
+
+  // 4) Vide aussi les notes de fin de shift du Debrief
+  ['db-positifs','db-amelio','db-next'].forEach(clearVal);
+
+  // 5) Redessine les tableaux de la Configuration avec les nouvelles données vierges
+  renderSetupHours();
+  renderRefDaySetup();
+  renderDigitalSetup();
+  renderSpeedSetup();
+  syncPmCible();
+
+  // 6) L'identité étant désormais incomplète (Manager/Date/Période vides), on ne la lie à
+  // aucun Brief existant : le prochain manager qui se présente évitera d'écraser un brief
+  // déjà validé, tant qu'il n'a pas ressaisi son propre nom/date/période.
+  currentBriefKey=null;
+  saveCurrentState();
+
+  toast("Nouveau remplissage : champs vidés, seul le Restaurant est conservé ✓","var(--blue)");
+}
+
+// ═══════════════════════════════════════════
+// BRIEF
+// ═══════════════════════════════════════════
+function renderBrief(){
+  const dateStr=cfg.date?new Date(cfg.date).toLocaleDateString('fr-FR',{weekday:'long',day:'numeric',month:'long'}):'';
+  document.getElementById('brief-title').textContent=`— ${cfg.restaurant} | ${dateStr} | ${cfg.manager}`;
+  document.getElementById('debrief-title').textContent=`— ${cfg.restaurant} | ${dateStr}`;
+
+  // KPIs
+  const kr=document.getElementById('brief-kpis');
+  cfg.pm = cfg.gcs ? +(cfg.sales/cfg.gcs).toFixed(2) : 0; // PM Cible = calcul automatique (Sales / TC's), toujours recalculé à l'affichage
+  const totGmalP=refDay.reduce((s,r)=>s+(r.gmal||0),0);
+  const totMopP=refDay.reduce((s,r)=>s+(r.mop||0),0);
+  kr.innerHTML=`
+    ${kpiHtml('Sales Prévus / Jr',fmtN(cfg.sales),'MAD','var(--blue)')}
+    ${kpiHtml("TC's Prévus",fmtN(cfg.gcs),'/jour','var(--gold)')}
+    ${kpiHtml('PM Cible',cfg.pm,'MAD','var(--orange)')}
+    ${kpiHtml("TC's GMAL",fmtN(totGmalP),'/jour','var(--purple)')}
+    ${kpiHtml("TC's MOP",fmtN(totMopP),'/jour','var(--blue)')}
+    ${kpiHtml('Événement',cfg.event,'','var(--green)')}
+    ${kpiHtml('Équipiers',cfg.crew,'dispo','var(--purple)')}`;
+
+  // Objectifs
+  const og=document.getElementById('obj-grid');
+  og.innerHTML='';
+  objectifs.forEach((o,i)=>{
+    const d=document.createElement('div');d.className='obj-item';
+    d.innerHTML=`
+      <div class="obj-top">
+        <span class="obj-badge">OBJECTIF</span>
+        <input class="obj-text-input" value="${o.obj}" placeholder="Intitulé de l'objectif..." oninput="objectifs[${i}].obj=this.value">
+        <button class="obj-del no-print" onclick="removeObjectif(${i})" title="Supprimer cet objectif">✕</button>
+      </div>
+      <div class="actions">${o.actions.map((a,j)=>`
+        <div class="action">
+          <input class="action-input" value="${a}" placeholder="Action..." oninput="objectifs[${i}].actions[${j}]=this.value">
+          <button class="action-del no-print" onclick="removeAction(${i},${j})" title="Supprimer">✕</button>
+        </div>`).join('')}
+      </div>
+      <button class="action-add no-print" onclick="addAction(${i})">+ Ajouter une action</button>
+      <textarea class="obj-note" placeholder="Commentaires / observations..." oninput="objectifs[${i}].note=this.value">${o.note}</textarea>`;
+    og.appendChild(d);
+  });
+
+  // Hours
+  const hc=document.getElementById('brief-hours');
+  hc.innerHTML='';
+  const maxTcs15=Math.max(...hours.map(h=>h.tcs15Max||0));
+  hours.forEach((h,i)=>{
+    hc.appendChild(buildHourCard(h,i,'brief',maxTcs15));
+  });
+}
+
+function buildHourCard(h,i,mode,maxTcs15){
+  const div=document.createElement('div');
+  div.className='h-card'+(i===0?' open':'');
+  div.id=`hcard-${mode}-${i}`;
+  const isMaxPeak=(h.tcs15Max||0)>0 && (h.tcs15Max||0)>=(maxTcs15||0);
+
+  const t=tranche(i); // ratios calculés (= chemin Brief!C26..C56 depuis la Journée de référence)
+  h.pmPrevu = h.gcPrevu ? +(h.salesPrevu/h.gcPrevu).toFixed(2) : 0; // PM Cible = calcul automatique (Sales / TC's), toujours recalculé à l'affichage
+
+  const tcs=[
+    {l:"TC's DLV",v:Math.round(t.tcsDelivery),c:'var(--blue)'},
+    {l:"TC's NGK",v:Math.round(t.tcsNgk),c:'var(--green)'},
+    {l:"TC's Caisse PC",v:Math.round(t.tcsCaissePC),c:'var(--orange)'},
+    {l:"TC's Drive",v:Math.round(t.tcsDrive),c:'var(--red)'},
+    {l:"TC's McCafé",v:Math.round(t.tcsMc),c:'var(--purple)'},
+  ];
+  const r=refDay[i]||{gmal:0,mop:0};
+  const digital=[
+    {l:"TC's GMAL",v:r.gmal||0,c:'var(--purple)'},
+    {l:"TC's MOP",v:r.mop||0,c:'var(--blue)'},
+  ];
+  const ratios=[
+    {l:"Sandwichs/TC's",v:t.sandwichsParGc.toFixed(2),c:'var(--red)'},
+    {l:"Frites/TC's",v:t.fritesParGc.toFixed(2),c:'var(--gold)'},
+    {l:"Boissons/TC's",v:t.boissonsParGc.toFixed(2),c:'var(--blue)'},
+    {l:"Articles/TC's",v:t.nbrArticlesParGc.toFixed(2),c:'var(--green)'},
+  ];
+
+  const kvsRealFields=[1,2,3,4].filter(n=>h[`kvsL${n}`]).map(n=>
+    debriefField(i,`kvsL${n}`,`KVS TIME Ligne ${n} Réalisé`,h[`kvsL${n}`],'var(--orange)',false,true)
+  ).join('');
+
+  const debriefInputs=mode==='debrief'?`
+    <div class="card-title" style="margin-top:16px">Saisie des réalisés</div>
+    <div class="inp-grid">
+      ${debriefField(i,"gc","TC's Réalisés",h.gcPrevu,'var(--gold)')}
+      ${debriefField(i,"sales","Sales Réalisés (MAD)",h.salesPrevu,'var(--blue)')}
+      ${debriefField(i,"effectifRealise","Effectif Réalisé",h.effectifPrevu,'var(--muted)')}
+      ${debriefField(i,"sandwich","Sandwichs Réalisés",h.sandwichPrevu,'var(--red)')}
+      ${debriefField(i,"pm","PM Réalisé (MAD)",h.pmPrevu,'var(--green)',true)}
+    </div>
+    ${kvsRealFields?`<div class="card-title" style="margin-top:16px">Vitesse — KVS TIME Réalisés</div>
+    <div class="inp-grid">
+      ${kvsRealFields}
+    </div>`:''}
+    <div class="card-title" style="margin-top:16px">Vitesse & pilotage — Réalisés</div>
+    <div class="inp-grid">
+      ${debriefField(i,"r2p","R2P Réalisé",h.r2p,'var(--red)',false,true)}
+      ${debriefField(i,"oepe","OEPE Drive Réalisé",h.oepe,'var(--red)',false,true)}
+      ${debriefField(i,"tphe","TPHE Réalisé",h.tphe,'var(--green)',true,false)}
+      ${debriefField(i,"moPct","M.O Réalisé (%)",h.moPct,'var(--purple)',true,true)}
+    </div>
+    <div class="card-title" style="margin-top:16px">Digital — Réalisés</div>
+    <div class="inp-grid">
+      ${debriefField(i,"gmal","TC's GMAL Réalisés",refDay[i]?refDay[i].gmal:0,'var(--purple)')}
+      ${debriefField(i,"mop","TC's MOP Réalisés",refDay[i]?refDay[i].mop:0,'var(--blue)')}
+    </div>`:'';
+
+  div.innerHTML=`
+    <div class="h-head" onclick="toggleH('${mode}',${i})">
+      <div style="display:flex;align-items:center">
+        <span class="h-badge">${hourLabel(h)}</span>
+        <span class="h-meta">${h.gcPrevu} TC's · ${fmtN(h.salesPrevu)} MAD · ${h.effectifPrevu} équip. prévus${realises[i]&&realises[i].effectifRealise?" · "+realises[i].effectifRealise+" réalisés":""}</span>
+      </div>
+      <div class="h-status">
+        <span id="hstatus-${mode}-${i}" style="font-size:11px;color:var(--muted)"></span>
+        <span class="h-arrow">▼</span>
+      </div>
+    </div>
+    <div class="h-body">
+      <div class="kpi-row" style="margin-top:4px">
+        ${kpiSmall("TC's Prévus",h.gcPrevu,'','var(--gold)')}
+        ${kpiSmall("Sales",fmtN(h.salesPrevu),'MAD','var(--blue)')}
+        ${kpiSmall("Effectif Prévu",h.effectifPrevu,'équip.','var(--muted)')}
+        ${realises[i]&&realises[i].effectifRealise?kpiSmall("Effectif Réalisé",realises[i].effectifRealise,'équip.',realises[i].effectifRealise>=h.effectifPrevu?'var(--green)':(h.effectifPrevu>0&&realises[i].effectifRealise<h.effectifPrevu?'var(--red)':`var(--muted)`)):''}
+        ${h.kvsL1?kpiSmall("KVS L1",h.kvsL1,'sec','var(--orange)'):''}
+        ${h.kvsL2?kpiSmall("KVS L2",h.kvsL2,'sec','var(--orange)'):''}
+        ${h.kvsL3?kpiSmall("KVS L3",h.kvsL3,'sec','var(--orange)'):''}
+        ${h.kvsL4?kpiSmall("KVS L4",h.kvsL4,'sec','var(--orange)'):''}
+        ${kpiSmall("R2P",h.r2p,'sec','var(--red)')}
+        ${kpiSmall("OEPE",h.oepe,'sec','var(--red)')}
+        ${kpiSmall("TPHE",h.tphe,'','var(--green)')}
+        ${kpiSmall("M.O",h.moPct,'%','var(--purple)')}
+        ${kpiSmall("NGK",(t.ngkInstoreShare*100).toFixed(1),'%','var(--blue)')}
+        ${kpiSmall("PM Cible",h.pmPrevu,'MAD','var(--orange)')}
+        ${kpiSmall("TC's 1/4h plus élevé", isMaxPeak && !h.tcs15Stars ? `${h.tcs15Max||0}*` : tcs15Label(h),'','var(--red)')}
+        ${kpiSmall("Nbr de lignes", nbrLignes(h.sandwichPrevu)===''?'—':nbrLignes(h.sandwichPrevu),'','var(--muted)')}
+      </div>
+      <div style="color:var(--muted);font-size:11px;text-transform:uppercase;letter-spacing:.08em;margin-bottom:8px">Répartition transactions prévues (calculée depuis la journée de référence du ${cfg.refdate?new Date(cfg.refdate).toLocaleDateString('fr-FR'):'-'})</div>
+      <div class="chips" style="margin-bottom:8px">
+        ${tcs.map(t=>`<div class="chip"><span class="chip-val" style="color:${t.c}">${t.v}</span><span class="chip-lbl">${t.l}</span></div>`).join('')}
+      </div>
+      <div class="chips" style="margin-bottom:8px">
+        ${digital.map(t=>`<div class="chip"><span class="chip-val" style="color:${t.c}">${t.v}</span><span class="chip-lbl">${t.l}</span></div>`).join('')}
+      </div>
+      <div class="chips">
+        ${ratios.map(t=>`<div class="chip"><span class="chip-val" style="color:${t.c}">${t.v}</span><span class="chip-lbl">${t.l}</span></div>`).join('')}
+      </div>
+      ${debriefInputs}
+    </div>`;
+  return div;
+}
+
+function debriefField(i,key,lbl,prevu,color,readonly,lowerIsBetter){
+  const v=realises[i][key]||'';
+  const pct=v&&prevu? Math.min(100,Math.round(parseFloat(v)/prevu*100)) : (v?100:0);
+  // lowerIsBetter=true (KVS, R2P, OEPE, M.O) : ok si réalisé <= prévu
+  const ok=v? (prevu? (lowerIsBetter ? parseFloat(v)<=prevu : parseFloat(v)>=prevu) : true) : false;
+  const barColor=v?(ok?'var(--green)':'var(--red)'):'var(--orange)';
+  return `<div class="inp-group">
+    <label>${lbl} <em style="color:${color}">/ ${readonly?'Cible':'Prévu'}: ${prevu}</em></label>
+    <input class="inp-box ${v?(ok?'filled-ok':'filled-warn'):''}" type="number" value="${v}"
+      id="dinp-${i}-${key}" placeholder="—"
+      ${readonly?`readonly style="background:var(--s2);cursor:not-allowed;opacity:.85" title="${key==='moPct'?'Calculé automatiquement : (Effectif réalisé × Taux horaire) / Sales réalisés × 100':key==='tphe'?'Calculé automatiquement : TCs réalisés / Effectif réalisé':'Calculé automatiquement = Sales réalisés / TCs réalisés'}"`:`oninput="handleRealise(${i},'${key}',this.value,${prevu},'${color}',${!!lowerIsBetter})"`}>
+    <div class="mprog ${v?'show':''}" id="mprog-${i}-${key}">
+      <div class="mprog-track"><div class="mprog-fill" id="mfill-${i}-${key}" style="width:${pct}%;background:${barColor}"></div></div>
+      <span class="mprog-pct" id="mpct-${i}-${key}" style="color:${barColor}">${v?pct+'%':''}</span>
+    </div>
+  </div>`;
+}
+
+function toggleH(mode,i){
+  const c=document.getElementById(`hcard-${mode}-${i}`);
+  c.classList.toggle('open');
+}
+
+function addObjectif(){
+  objectifs.push({obj:"",actions:[""],note:""});
+  renderBrief();
+  toast("Objectif ajouté ✓");
+}
+function removeObjectif(i){
+  objectifs.splice(i,1);
+  renderBrief();
+}
+function addAction(i){
+  objectifs[i].actions.push("");
+  renderBrief();
+}
+function removeAction(i,j){
+  objectifs[i].actions.splice(j,1);
+  renderBrief();
+}
+
+// ═══════════════════════════════════════════
+// POSITIONNEMENT
+// ═══════════════════════════════════════════
+// Reproduit le chemin Input (2): tout est dérivé de la tranche active (Brief) + cfg
+// Base "GC Store" = TC's prévu de la tranche (gcPrevu), à la demande — l'Excel utilise Brief!M42 (réf.) mais ce choix a été volontairement écarté ici
+function positioningOutput(i){
+  const t=tranche(i);
+  const gcStore=t.gcPrevu;                          // L3 (base choisie = gcPrevu, cf. Brief!C17)
+  const pDrive=t.pctDrive, pDelivery=t.pctDelivery, pAC=t.pctAC, pCaissePC=t.pctCaissePC, pNgk=t.pctNgk, pMc=t.pctMc;
+
+  // ── Instore share / Instore TC (Input(2)! L4, L5 = "1-Drive%-Delivery%") ──
+  const pInstore=Math.max(0,1-pDrive-pDelivery);    // L4
+  const instoreGc=pInstore*gcStore;                  // L5
+
+  const cars=pDrive*gcStore;                         // L9
+  const deliveryGc=pDelivery*gcStore;                // L7 = Delivery% * gcStore
+  const mcGc=pMc*gcStore;                            // L11
+  const fcOrderGc=pAC*gcStore;                       // L15 = %Tc's AC * gcStore (Front Counter/Order)
+  const fcCashGc=pCaissePC*gcStore;                  // L16 = %Tc's Caisse PC * gcStore (Front Counter/Cash)
+  const kioskGc=pNgk*gcStore;                        // L17 = %Tc's NGK * gcStore (Kiosk share total store)
+
+  // ── NGK instore share (Input(2)! L18, L19) ──
+  const totalNgkGc=fcCashGc+kioskGc;                 // L18 = L16 + L17
+  const ngkInstoreShare=instoreGc? totalNgkGc/instoreGc : 0; // L19 = L18 / L5
+
+  // ── Eat-In (Input(2)! L34, L35 — même base que L4/L5 dans ce classeur) ──
+  const pEatIn=Math.max(0,1-pDrive-pDelivery);       // L34 = 1-Drive%-Delivery%
+  const eatInGc=pEatIn*gcStore;                      // L35 = L34 * gcStore
+
+  // ── SAT (Input(2)! L21, L22 = SAT%(95%, B29) * Eat-In GC L35) ──
+  const satPct=0.95;                                 // B29, valeur fixe du classeur
+  const satGc=satPct*eatInGc;                        // L22 = B29 * L35
+
+  // ── Items (Input(2)! L25, L26 = Total items/order (B15) * gcStore) ──
+  const itemsOrder=t.nbrArticlesParGc;               // L25 = B15
+  const itemsH=itemsOrder*gcStore;                   // L26 = L25 * gcStore (B34 dans le classeur = base gcStore)
+
+  const sandwichesH=t.sandwichsParGc*gcStore;        // L28
+  const beveragesH=t.boissonsParGc*gcStore;          // L30
+  const friesH=t.fritesParGc*gcStore;                // L32
+
+  // ── Sales/Rest (Input(2)! I34 = gcStore(B34) * PM(I33=Brief!K17)) ──
+  const pm=t.pmPrevu;                                // I33 = Brief!K17
+  const salesRest=gcStore*pm;                        // I34 = B34 * I33
+
+  const crewTotal=postes.reduce((s,p)=>s+p.crew,0);  // I24
+  const masseSalariale=crewTotal*cfg.rate;           // I31
+  const pctCrewLabor=salesRest? masseSalariale/salesRest*100 : 0; // I36
+  return {gcStore,instoreGc,pInstore,cars,deliveryGc,pDelivery,mcGc,fcOrderGc,fcCashGc,kioskGc,
+          totalNgkGc,ngkInstoreShare,eatInGc,satGc,itemsOrder,itemsH,sandwichesH,beveragesH,friesH,
+          pm,salesRest,masseSalariale,pctCrewLabor};
+}
+
+function renderPositionnement(){
+  if(activeHourIdx>=hours.length) activeHourIdx=0;
+  postes=posByHour[activeHourIdx]; // garantit la cohérence si activeHourIdx a changé entre-temps
+  renderPosHourTabs();
+  renderFloorMap();
+  renderPosControls();
+  updateGauge();
+  updatePosKpis();
+}
+
+function renderPosHourTabs(){
+  const c=document.getElementById('pos-hour-tabs');
+  if(activeHourIdx>=hours.length) activeHourIdx=0;
+  c.innerHTML=hours.map((h,i)=>`
+    <button class="chip" onclick="selectPosHour(${i})" style="cursor:pointer;border:1px solid ${i===activeHourIdx?'var(--gold)':'var(--border)'};background:${i===activeHourIdx?'rgba(255,199,44,.12)':'var(--dark)'}">
+      <span class="chip-val" style="color:${i===activeHourIdx?'var(--gold)':'var(--text)'}">${hourShortLabel(h)}</span>
+      <span class="chip-lbl">${h.gcPrevu} TC's</span>
+    </button>`).join('');
+}
+
+function selectPosHour(i){
+  activeHourIdx=i;
+  postes=posByHour[i]; // bascule vers le positionnement propre à cette tranche
+  renderPosHourTabs();
+  renderFloorMap();
+  renderPosControls();
+  updateGauge();
+  updatePosKpis();
+}
+
+function renderFloorMap(){
+  const fg=document.getElementById('floor-grid');
+  fg.innerHTML='';
+  postes.forEach(p=>{
+    const pct=Math.min(100,Math.round(p.crew/p.max*100));
+    const fz=document.createElement('div');
+    fz.className='fz';fz.setAttribute('data-zone',p.id);
+    fz.innerHTML=`
+      <div class="fz-name">${p.name}</div>
+      <div class="fz-num" style="color:${p.color}">${p.crew}</div>
+      <div class="fz-bar"><div class="fz-bar-fill" id="fzbar-${p.id}" style="width:${pct}%;background:${p.color}"></div></div>`;
+    fg.appendChild(fz);
+  });
+}
+
+function renderPosControls(){
+  const pc=document.getElementById('pos-controls');
+  pc.innerHTML='';
+  postes.forEach((p,i)=>{
+    const pct=Math.min(100,Math.round(p.crew/p.max*100));
+    const card=document.createElement('div');
+    card.className='pos-card';card.id=`poscard-${p.id}`;
+    card.innerHTML=`
+      <div class="pos-card-head">
+        <div><div class="pos-name" style="color:${p.color}">${p.name}</div></div>
+      </div>
+      <div class="pos-stepper">
+        <button class="step-btn" onclick="adjustPos(${i},-1)">−</button>
+        <span class="step-num" id="stepnum-${p.id}" style="color:${p.color}">${p.crew}</span>
+        <button class="step-btn" onclick="adjustPos(${i},+1)">+</button>
+      </div>
+      <div class="pos-bar"><div class="pos-bar-fill" id="posbar-${p.id}" style="width:${pct}%;background:${p.color}"></div></div>`;
+    pc.appendChild(card);
+  });
+}
+
+function adjustPos(i,delta){
+  const p=postes[i];
+  const nv=Math.max(0,Math.min(p.max,p.crew+delta));
+  postes[i].crew=nv;
+  document.getElementById(`stepnum-${p.id}`).textContent=nv;
+  const pct=Math.min(100,Math.round(nv/p.max*100));
+  document.getElementById(`posbar-${p.id}`).style.width=pct+'%';
+  document.getElementById(`fzbar-${p.id}`).style.width=pct+'%';
+  document.querySelector(`[data-zone="${p.id}"] .fz-num`).textContent=nv;
+  updateGauge();
+  updatePosKpis();
+}
+
+// Barème Production : interpolation linéaire dans chaque palier selon sandwichs/h
+function productionCrewBySandwich(sw){
+  if(sw >= 491) return 23;
+  if(sw >= 258) { // 258–490 → 10 à 23p
+    const ratio=(sw-258)/(490-258);
+    return Math.round(10 + ratio*(23-10));
+  }
+  if(sw >= 172) { // 172–257 → 7 à 10p
+    const ratio=(sw-172)/(257-172);
+    return Math.round(7 + ratio*(10-7));
+  }
+  // 0–171 → 1 à 7p
+  const ratio=sw>0 ? sw/171 : 0;
+  return Math.round(1 + ratio*(7-1));
+}
+
+// Barème Assembly Zone : nombre d'équipiers selon les TC's prévus/heure
+function assemblyCrewByTcs(tcs){
+  if(tcs >= 451) return 9;
+  if(tcs >= 404) return 8;
+  if(tcs >= 336) return 7;
+  if(tcs >= 326) return 6;
+  if(tcs >= 271) return 5;
+  if(tcs >= 221) return 4;
+  if(tcs >= 180) return 3;
+  if(tcs >= 121) return 2;
+  return 1;
+}
+
+// Positionnement auto : répartit l'effectif disponible proportionnellement aux parts
+// de transactions (Drive/AC/Caisse PC/NGK/Delivery/MC) de la tranche active — chemin Brief → Input(2) → #Crew
+// Assembly Zone : barème fixe basé sur les TC's prévus de la tranche active.
+// Un poste lié à un canal dont le TC's n'est pas renseigné (0) reçoit un poids nul et n'est pas positionné.
+function autoPosition(){
+  const available=cfg.crew-cfg.managers;
+  const t=tranche(activeHourIdx);
+  const tcsH=hours[activeHourIdx].gcPrevu||0; // TC's prévus de la tranche active (Brief)
+
+  // Assembly Zone : barème fixe (exclu de la répartition proportionnelle)
+  const assemblyCrew=assemblyCrewByTcs(tcsH);
+
+  // poids dérivés des % de la tranche active (mappés aux zones du plan de salle)
+  // Les postes liés à un canal dont le TC's n'est pas renseigné (0) reçoivent un poids nul.
+  // Accueil/GEL combine une base fixe (fonction GEL) + une part variable liée au canal AC.
+  // Production : barème fixe basé sur les sandwichs prévus saisis dans le Brief pour cette tranche
+  const sandwichesH=hours[activeHourIdx].sandwichPrevu||0;
+  const prodCrew=productionCrewBySandwich(sandwichesH);
+
+  const weights={
+    bev:0.14, fries:0.05,
+    drive:t.pctDrive>0?t.pctDrive:0,
+    cashier:t.pctCaissePC>0?t.pctCaissePC*0.4:0,
+    kiosk:t.pctNgk>0?t.pctNgk*0.4:0,
+    delivery:t.pctDelivery>0?t.pctDelivery:0,
+    sat:0.10,
+    accueil:0.04+(t.pctAC>0?t.pctAC*0.3:0),
+    lobby:0.06,
+    mc:t.pctMc>0?t.pctMc:0
+  };
+  const remainingAvailable=Math.max(0, available-assemblyCrew-prodCrew);
+  const totalW=postes.filter(p=>p.id!=='assembly'&&p.id!=='prod').reduce((s,p)=>s+(weights[p.id]??0.05),0);
+  postes.forEach((p,i)=>{
+    if(p.id==='assembly'){
+      postes[i].crew=Math.min(p.max, assemblyCrew);
+    } else if(p.id==='prod'){
+      postes[i].crew=Math.min(p.max, prodCrew);
+    } else {
+      const w=weights[p.id]??0.05;
+      postes[i].crew = w>0 ? Math.max(1,Math.min(p.max,Math.round(remainingAvailable*(w/totalW)))) : 0;
+    }
+  });
+  renderFloorMap();
+  renderPosControls();
+  updateGauge();
+  updatePosKpis();
+  const placed=postes.reduce((s,p)=>s+p.crew,0);
+  toast(`Positionnement ajusté : ${placed}/${available} — Production : ${prodCrew} (${sandwichesH} sandwichs) · Assembly : ${assemblyCrew} (${tcsH} TC's) ✓`);
+}
+
+function updateGauge(){
+  const total=postes.reduce((s,p)=>s+p.crew,0);
+  const avail=cfg.crew;
+  document.getElementById('gauge-num').textContent=total;
+  document.getElementById('gauge-sub-text').textContent=`sur ${avail} disponibles`;
+  const pct=Math.min(1,total/avail);
+  const circ=175.93;
+  document.getElementById('gauge-circle').style.strokeDashoffset=circ-(circ*pct);
+  const warn=document.getElementById('gauge-warn');
+  if(total>avail){warn.innerHTML=`<span style="color:var(--red)">⚠ Dépassement de ${total-avail} équipiers</span>`}
+  else if(total<avail-5){warn.innerHTML=`<span style="color:var(--orange)">${avail-total} équipiers non positionnés</span>`}
+  else{warn.innerHTML=`<span style="color:var(--green)">✓ Positionnement équilibré</span>`}
+}
+
+function updatePosKpis(){
+  document.getElementById('pos-hour-label').textContent=hours[activeHourIdx]?hourLabel(hours[activeHourIdx]):'';
+  const out=positioningOutput(activeHourIdx);
+  const h=hours[activeHourIdx]||{};
+
+  // Objectifs vitesse & pilotage (= KVS TIME Ligne 1-4 / R2P (90s) / OEPE Drive (120s) / TPHE / M.O % / NGK) de la tranche active
+  const speedLbl=document.getElementById('pos-speed-hour-label');
+  if(speedLbl) speedLbl.textContent=hours[activeHourIdx]?hourLabel(hours[activeHourIdx]):'';
+  const sk=document.getElementById('pos-speed-kpis');
+  if(sk) sk.innerHTML=`
+    ${h.kvsL1?kpiSmall("KVS L1",h.kvsL1,'sec','var(--orange)'):''}
+    ${h.kvsL2?kpiSmall("KVS L2",h.kvsL2,'sec','var(--orange)'):''}
+    ${h.kvsL3?kpiSmall("KVS L3",h.kvsL3,'sec','var(--orange)'):''}
+    ${h.kvsL4?kpiSmall("KVS L4",h.kvsL4,'sec','var(--orange)'):''}
+    ${kpiSmall("R2P",h.r2p,'sec','var(--red)')}
+    ${kpiSmall("OEPE",h.oepe,'sec','var(--red)')}
+    ${kpiSmall("TPHE",h.tphe,'','var(--green)')}
+    ${kpiSmall("M.O",h.moPct,'%','var(--purple)')}
+    ${kpiSmall("NGK",(tranche(activeHourIdx).ngkInstoreShare*100).toFixed(1),'%','var(--blue)')}`;
+
+  // Indicateurs Output (= Input(2) colonne Output K/L)
+  const ok=document.getElementById('pos-output-kpis');
+  ok.innerHTML=`
+    ${kpiSmall("TC Store",fmtN(out.gcStore.toFixed(0)),'/h','var(--gold)')}
+    ${kpiSmall("Instore TC",out.instoreGc.toFixed(1),'/h','var(--blue)')}
+    ${kpiSmall("Eat-In TC",out.eatInGc.toFixed(1),'/h','var(--blue)')}
+    ${kpiSmall("Cars (Drive)",out.cars.toFixed(1),'/h','var(--red)')}
+    ${kpiSmall("Delivery",out.deliveryGc.toFixed(1),'/h','var(--orange)')}
+    ${kpiSmall("McCafé TC",out.mcGc.toFixed(1),'/h','var(--purple)')}
+    ${kpiSmall("FC TC/Order",out.fcOrderGc.toFixed(1),'','var(--green)')}
+    ${kpiSmall("FC TC/Cash",out.fcCashGc.toFixed(1),'','var(--green)')}
+    ${kpiSmall("Total NGK TC",out.totalNgkGc.toFixed(1),'','var(--gold)')}
+    ${kpiSmall("NGK Instore Share",(out.ngkInstoreShare*100).toFixed(1),'%','var(--blue)')}
+    ${kpiSmall("SAT",out.satGc.toFixed(1),'/h','var(--green)')}
+    ${kpiSmall("Items",out.itemsH.toFixed(0),'/h','var(--muted)')}
+    ${kpiSmall("Sandwichs",out.sandwichesH.toFixed(0),'/h','var(--red)')}
+    ${kpiSmall("Boissons",out.beveragesH.toFixed(0),'/h','var(--blue)')}
+    ${kpiSmall("Frites",out.friesH.toFixed(0),'/h','var(--gold)')}
+    ${kpiSmall("Sales /Rest",fmtN(out.salesRest.toFixed(0)),'MAD','var(--orange)')}`;
+
+  // KPIs masse salariale (= Estimation Crew Labor)
+  const pk=document.getElementById('pos-kpis');
+  const total=postes.reduce((s,p)=>s+p.crew,0);
+  pk.innerHTML=`
+    ${kpiHtml('Équipiers positionnés',total,'','var(--gold)')}
+    ${kpiHtml('Masse salariale estimée',fmtN(out.masseSalariale.toFixed(0)),'MAD','var(--orange)')}
+    ${kpiHtml('% Crew Labor',out.pctCrewLabor.toFixed(1)+'%','/ Sales Rest','var(--blue)')}
+    ${kpiHtml('Taux horaire',cfg.rate,'MAD/h','var(--muted)')}`;
+}
+
+// ═══════════════════════════════════════════
+// DEBRIEF
+// ═══════════════════════════════════════════
+function renderDebrief(){
+  cfg.pm = cfg.gcs ? +(cfg.sales/cfg.gcs).toFixed(2) : 0; // PM Cible = calcul automatique, toujours recalculé à l'affichage
+  realises.forEach((r,i)=>{ // PM Réalisé = calcul automatique (Sales réalisés / TC's réalisés), toujours recalculé à l'affichage
+    const gc=parseFloat(r.gc), sales=parseFloat(r.sales);
+    r.pm=(gc&&sales)?+(sales/gc).toFixed(2):'';
+  });
+  renderDebriefSummary();
+  // Hours (uniquement au montage initial / changement de page, jamais pendant la frappe)
+  const hc=document.getElementById('debrief-hours');
+  hc.innerHTML='';
+  const maxTcs15=Math.max(...hours.map(h=>h.tcs15Max||0));
+  hours.forEach((h,i)=>{hc.appendChild(buildHourCard(h,i,'debrief',maxTcs15))});
+  updateComparisonTable();
+  updateSpeedComparisonTable();
+}
+
+// Met à jour uniquement la barre de synthèse, sans redessiner les cartes d'heures (préserve le focus pendant la frappe)
+function renderDebriefSummary(){
+  const sb=document.getElementById('debrief-sumbar');
+  if(!sb) return;
+  const totGcP=hours.reduce((s,h)=>s+h.gcPrevu,0);
+  const totSalesP=hours.reduce((s,h)=>s+h.salesPrevu,0);
+  const totGcR=realises.reduce((s,r)=>s+(parseFloat(r.gc)||0),0);
+  const totSalesR=realises.reduce((s,r)=>s+(parseFloat(r.sales)||0),0);
+  const totGmalP=refDay.reduce((s,r)=>s+(r.gmal||0),0);
+  const totMopP=refDay.reduce((s,r)=>s+(r.mop||0),0);
+  const totGmalR=realises.reduce((s,r)=>s+(parseFloat(r.gmal)||0),0);
+  const totMopR=realises.reduce((s,r)=>s+(parseFloat(r.mop)||0),0);
+  const hasR=realises.some(r=>r.gc);
+  const hasDigitalR=realises.some(r=>r.gmal||r.mop);
+  const gcPct=totGcP?Math.round(totGcR/totGcP*100):0;
+  const spPct=totSalesP?Math.round(totSalesR/totSalesP*100):0;
+  const gmalPct=totGmalP?Math.round(totGmalR/totGmalP*100):0;
+  const mopPct=totMopP?Math.round(totMopR/totMopP*100):0;
+  const pmCible = totGcP ? +(totSalesP/totGcP).toFixed(2) : 0; // PM Cible = calcul automatique (Sales prévus / TC's prévus)
+  const pmReal = (hasR && totGcR) ? +(totSalesR/totGcR).toFixed(2) : 0; // PM Réalisé = calcul automatique (Sales réalisés / TC's réalisés)
+
+  sb.innerHTML=`
+    <div class="sum-item">
+      <div class="sum-lbl">TC's ${hasR?'réalisés':'prévus'}</div>
+      <div><span class="sum-val" style="color:${hasR?(totGcR>=totGcP?'var(--green)':'var(--orange)'):'var(--gold)'}">${hasR?fmtN(totGcR):fmtN(totGcP)}</span>${hasR?`<span class="sum-sub"> / ${fmtN(totGcP)} (${gcPct}%)</span>`:''}</div>
+    </div>
+    <div class="sum-div"></div>
+    <div class="sum-item">
+      <div class="sum-lbl">Sales ${hasR?'réalisés':'prévus'}</div>
+      <div><span class="sum-val" style="color:${hasR?(totSalesR>=totSalesP?'var(--green)':'var(--orange)'):'var(--blue)'}">${hasR?fmtN(totSalesR):fmtN(totSalesP)}</span><span class="sum-sub"> MAD${hasR?` (${spPct}%)`:''}</span></div>
+    </div>
+    <div class="sum-div"></div>
+    <div class="sum-item">
+      <div class="sum-lbl">PM ${hasR&&pmReal?'réalisé':'cible'}</div>
+      <div><span class="sum-val" style="color:${hasR&&pmReal?(pmReal>=pmCible?'var(--green)':'var(--orange)'):'var(--orange)'}">${hasR&&pmReal?pmReal:pmCible}</span><span class="sum-sub"> MAD${hasR&&pmReal?` / ${pmCible}`:''}</span></div>
+    </div>
+    <div class="sum-div"></div>
+    <div class="sum-item">
+      <div class="sum-lbl">GMAL ${hasDigitalR?'réalisés':'prévus'}</div>
+      <div><span class="sum-val" style="color:${hasDigitalR?(totGmalR>=totGmalP?'var(--green)':'var(--orange)'):'var(--purple)'}">${hasDigitalR?fmtN(totGmalR):fmtN(totGmalP)}</span>${hasDigitalR?`<span class="sum-sub"> / ${fmtN(totGmalP)} (${gmalPct}%)</span>`:''}</div>
+    </div>
+    <div class="sum-div"></div>
+    <div class="sum-item">
+      <div class="sum-lbl">MOP ${hasDigitalR?'réalisés':'prévus'}</div>
+      <div><span class="sum-val" style="color:${hasDigitalR?(totMopR>=totMopP?'var(--green)':'var(--orange)'):'var(--blue)'}">${hasDigitalR?fmtN(totMopR):fmtN(totMopP)}</span>${hasDigitalR?`<span class="sum-sub"> / ${fmtN(totMopP)} (${mopPct}%)</span>`:''}</div>
+    </div>
+    ${hasR?`<div class="sum-div"></div>
+    <div class="sum-item">
+      <div class="sum-lbl">Statut</div>
+      <div style="font-size:20px">${gcPct>=100&&spPct>=100?'✅ Objectifs atteints':gcPct>=90?'🟡 Proche des objectifs':'🔴 Sous les objectifs'}</div>
+    </div>`:''}`;
+}
+
+function handleRealise(i,key,val,prevu,color,lowerIsBetter){
+  realises[i][key]=val;
+  const inp=document.getElementById(`dinp-${i}-${key}`);
+  const ok=val? (prevu? (lowerIsBetter ? parseFloat(val)<=prevu : parseFloat(val)>=prevu) : true) : false;
+  inp.className='inp-box '+(val?(ok?'filled-ok':'filled-warn'):'');
+  const prog=document.getElementById(`mprog-${i}-${key}`);
+  const fill=document.getElementById(`mfill-${i}-${key}`);
+  const pct=document.getElementById(`mpct-${i}-${key}`);
+  if(val){
+    const p=prevu? Math.min(100,Math.round(parseFloat(val)/prevu*100)) : 100;
+    const barColor=ok?'var(--green)':'var(--red)';
+    prog.classList.add('show');
+    fill.style.width=p+'%';
+    fill.style.background=barColor;
+    pct.textContent=p+'%';
+    pct.style.color=barColor;
+  } else {prog.classList.remove('show')}
+  syncRealPm(i); // PM Réalisé = calcul automatique (Sales réalisés / TC's réalisés)
+  syncMoPctRealise(i); // M.O Réalisé = calcul automatique
+  syncTpheRealise(i); // TPHE Réalisé = calcul automatique
+  updateComparisonTable();
+  updateSpeedComparisonTable();
+  // Update debrief summary (sans toucher aux cartes d'heures, pour préserver le focus de l'input en cours d'édition)
+  renderDebriefSummary();
+}
+
+// M.O Réalisé% = (effectifRealise × taux horaire moyen) / salesRéalisés × 100
+function syncMoPctRealise(i){
+  const r = realises[i];
+  if(!r) return;
+  const rate = +document.getElementById('cfg-rate').value || 0;
+  const salesR = parseFloat(r.sales) || 0;
+  const effR = parseFloat(r.effectifRealise) || 0;
+  const mo = (salesR && rate) ? +((effR * rate) / salesR * 100).toFixed(2) : '';
+  r.moPct = mo;
+  const el = document.getElementById(`dinp-${i}-moPct`);
+  if(el){
+    el.value = mo;
+    // mise à jour barre de progression
+    const prevu = hours[i] ? hours[i].moPct : 0;
+    const ok = mo ? parseFloat(mo) <= prevu : false;
+    el.className = 'inp-box ' + (mo ? (ok ? 'filled-ok' : 'filled-warn') : '');
+    const prog = document.getElementById(`mprog-${i}-moPct`);
+    const fill = document.getElementById(`mfill-${i}-moPct`);
+    const pct = document.getElementById(`mpct-${i}-moPct`);
+    if(mo && prog){
+      const p = prevu ? Math.min(100, Math.round(parseFloat(mo)/prevu*100)) : 100;
+      const barColor = ok ? 'var(--green)' : 'var(--red)';
+      prog.classList.add('show');
+      fill.style.width = p+'%';
+      fill.style.background = barColor;
+      pct.textContent = p+'%';
+      pct.style.color = barColor;
+    } else if(prog){ prog.classList.remove('show'); }
+  }
+}
+
+// TPHE prévu = TC's prévus / Effectif prévu (brief)
+function syncTphe(i){
+  const h = hours[i];
+  if(!h) return;
+  const tphe = h.effectifPrevu ? +(h.gcPrevu / h.effectifPrevu).toFixed(2) : '';
+  h.tphe = tphe;
+  const el = document.getElementById('speed-tphe-'+i);
+  if(el) el.value = tphe !== '' ? tphe : '';
+}
+
+// TPHE réalisé = TC's réalisés / Effectif réalisé (debrief)
+function syncTpheRealise(i){
+  const r = realises[i];
+  if(!r) return;
+  const gc = parseFloat(r.gc) || 0;
+  const eff = parseFloat(r.effectifRealise) || 0;
+  const tphe = (gc && eff) ? +(gc / eff).toFixed(2) : '';
+  r.tphe = tphe;
+  const el = document.getElementById(`dinp-${i}-tphe`);
+  if(el){
+    el.value = tphe;
+    const prevu = hours[i] ? hours[i].tphe : 0;
+    const ok = tphe !== '' ? parseFloat(tphe) >= prevu : false;
+    el.className = 'inp-box ' + (tphe !== '' ? (ok ? 'filled-ok' : 'filled-warn') : '');
+    const prog = document.getElementById(`mprog-${i}-tphe`);
+    const fill = document.getElementById(`mfill-${i}-tphe`);
+    const pct  = document.getElementById(`mpct-${i}-tphe`);
+    if(tphe !== '' && prog){
+      const p = prevu ? Math.min(100, Math.round(parseFloat(tphe)/prevu*100)) : 100;
+      const barColor = ok ? 'var(--green)' : 'var(--red)';
+      prog.classList.add('show');
+      fill.style.width = p+'%';
+      fill.style.background = barColor;
+      pct.textContent = p+'%';
+      pct.style.color = barColor;
+    } else if(prog){ prog.classList.remove('show'); }
+  }
+}
+
+// PM Réalisé par tranche = Sales réalisés / TC's réalisés (calcul automatique, lecture seule)
+function syncRealPm(i){
+  const gc=parseFloat(realises[i].gc);
+  const sales=parseFloat(realises[i].sales);
+  const pm=(gc&&sales)?+(sales/gc).toFixed(2):'';
+  realises[i].pm=pm;
+  const inp=document.getElementById(`dinp-${i}-pm`);
+  if(!inp) return;
+  inp.value=pm;
+  const prevu=hours[i]?hours[i].pmPrevu:0;
+  const ok=pm?(prevu?pm>=prevu:true):false;
+  inp.className='inp-box '+(pm?(ok?'filled-ok':'filled-warn'):'');
+  const prog=document.getElementById(`mprog-${i}-pm`);
+  const fill=document.getElementById(`mfill-${i}-pm`);
+  const pctEl=document.getElementById(`mpct-${i}-pm`);
+  if(!prog||!fill||!pctEl) return;
+  if(pm){
+    const p=prevu?Math.min(100,Math.round(pm/prevu*100)):100;
+    prog.classList.add('show');
+    fill.style.width=p+'%';
+    fill.style.background=ok?'var(--green)':'var(--orange)';
+    pctEl.textContent=p+'%';
+    pctEl.style.color=ok?'var(--green)':'var(--orange)';
+  } else {prog.classList.remove('show')}
+}
+
+function updateComparisonTable(){
+  const card=document.getElementById('cmp-card');
+  const table=document.getElementById('cmp-table');
+  if(!realises.some(r=>r.gc||r.sales||r.gmal||r.mop)){card.style.display='none';return}
+  card.style.display='block';
+  let rows=`<tr><th>Tranche</th><th>Effectif Prévu</th><th>Effectif Réalisé</th><th>Écart Effectif</th><th>TC's Prévus</th><th>TC's Réalisés</th><th>Écart TC's</th><th>Sales Prévus</th><th>Sales Réalisés</th><th>Écart Sales</th><th>PM Prévu</th><th>PM Réalisé</th><th>GMAL Prévu</th><th>GMAL Réalisé</th><th>Écart GMAL</th><th>MOP Prévu</th><th>MOP Réalisé</th><th>Écart MOP</th></tr>`;
+  hours.forEach((h,i)=>{
+    const r=realises[i];
+    const rd=refDay[i]||{gmal:0,mop:0};
+    const dGc=r.gc?(parseFloat(r.gc)-h.gcPrevu):null;
+    const dSales=r.sales?(parseFloat(r.sales)-h.salesPrevu):null;
+    const dGmal=r.gmal?(parseFloat(r.gmal)-(rd.gmal||0)):null;
+    const dMop=r.mop?(parseFloat(r.mop)-(rd.mop||0)):null;
+    const dEff=r.effectifRealise?(parseFloat(r.effectifRealise)-h.effectifPrevu):null;
+    rows+=`<tr>
+      <td><span style="background:var(--gold);color:#111;padding:2px 9px;border-radius:6px;font-weight:800;font-size:12px">${hourLabel(h)}</span></td>
+      <td>${h.effectifPrevu||'-'}</td>
+      <td style="font-weight:700;color:${r.effectifRealise?(parseFloat(r.effectifRealise)>=h.effectifPrevu?'var(--green)':(h.effectifPrevu>0?'var(--red)':'')):'' }">${r.effectifRealise||'—'}</td>
+      <td class="${dEff===null?'':'delta-'+(dEff>=0?'pos':'neg')}">${dEff===null?'-':(dEff>=0?'+':'')+dEff}</td>
+      <td>${h.gcPrevu}</td>
+      <td style="font-weight:700">${r.gc||'-'}</td>
+      <td class="${dGc===null?'':'delta-'+(dGc>=0?'pos':'neg')}">${dGc===null?'-':(dGc>=0?'+':'')+dGc}</td>
+      <td>${fmtN(h.salesPrevu)}</td>
+      <td style="font-weight:700">${r.sales?fmtN(r.sales):'-'}</td>
+      <td class="${dSales===null?'':'delta-'+(dSales>=0?'pos':'neg')}">${dSales===null?'-':(dSales>=0?'+':'')+fmtN(dSales)}</td>
+      <td>${h.pmPrevu}</td>
+      <td style="font-weight:700;color:${r.pm?(parseFloat(r.pm)>=h.pmPrevu?'var(--green)':'var(--orange)'):'var(--muted)'}">${r.pm||'-'}</td>
+      <td>${rd.gmal||0}</td>
+      <td style="font-weight:700">${r.gmal||'-'}</td>
+      <td class="${dGmal===null?'':'delta-'+(dGmal>=0?'pos':'neg')}">${dGmal===null?'-':(dGmal>=0?'+':'')+dGmal}</td>
+      <td>${rd.mop||0}</td>
+      <td style="font-weight:700">${r.mop||'-'}</td>
+      <td class="${dMop===null?'':'delta-'+(dMop>=0?'pos':'neg')}">${dMop===null?'-':(dMop>=0?'+':'')+dMop}</td>
+    </tr>`;
+  });
+  table.innerHTML=rows;
+}
+
+// Synthèse Prévu vs Réalisé — Indicateurs vitesse & pilotage (KVS L1-4, R2P, OEPE, TPHE, M.O%, NGK%)
+function updateSpeedComparisonTable(){
+  const card=document.getElementById('cmp-speed-card');
+  const table=document.getElementById('cmp-speed-table');
+  const hasSpeedReal=realises.some(r=>r.kvsL1||r.kvsL2||r.kvsL3||r.kvsL4||r.r2p||r.oepe||r.tphe||r.moPct);
+  if(!hasSpeedReal){card.style.display='none';return}
+  card.style.display='block';
+  // n'affiche les colonnes KVS Lx que si au moins une tranche a une valeur prévue pour cette ligne
+  const kvsLines=[1,2,3,4].filter(n=>hours.some(h=>h[`kvsL${n}`]));
+  let head=`<tr><th>Tranche</th>`;
+  kvsLines.forEach(n=>head+=`<th>KVS L${n} Prévu</th><th>KVS L${n} Réalisé</th><th>Écart</th>`);
+  head+=`<th>R2P Prévu</th><th>R2P Réalisé</th><th>Écart</th>
+         <th>OEPE Prévu</th><th>OEPE Réalisé</th><th>Écart</th>
+         <th>TPHE Prévu</th><th>TPHE Réalisé</th><th>Écart</th>
+         <th>M.O Prévu</th><th>M.O Réalisé</th><th>Écart</th>
+         <th>NGK% Réf.</th></tr>`;
+  let rows=head;
+  hours.forEach((h,i)=>{
+    const r=realises[i];
+    const deltaCell=(prevu,val)=>{
+      if(!val) return `<td>—</td>`;
+      const d=+(parseFloat(val)-prevu).toFixed(2);
+      // ici plus c'est haut, pire c'est (temps de service) : écart positif = rouge, négatif = vert
+      return `<td class="delta-${d>=0?'neg':'pos'}">${d>=0?'+':''}${d}</td>`;
+    };
+    let cells=`<tr>
+      <td><span style="background:var(--gold);color:#111;padding:2px 9px;border-radius:6px;font-weight:800;font-size:12px">${hourLabel(h)}</span></td>`;
+    kvsLines.forEach(n=>{
+      const prevu=h[`kvsL${n}`]||0;
+      const val=r[`kvsL${n}`];
+      cells+=`<td>${prevu||'-'}</td><td style="font-weight:700">${val||'-'}</td>${deltaCell(prevu,val)}`;
+    });
+    cells+=`<td>${h.r2p||'-'}</td><td style="font-weight:700">${r.r2p||'-'}</td>${deltaCell(h.r2p||0,r.r2p)}`;
+    cells+=`<td>${h.oepe||'-'}</td><td style="font-weight:700">${r.oepe||'-'}</td>${deltaCell(h.oepe||0,r.oepe)}`;
+    cells+=`<td>${h.tphe||'-'}</td><td style="font-weight:700">${r.tphe||'-'}</td>${deltaCell(h.tphe||0,r.tphe)}`;
+    cells+=`<td>${h.moPct?h.moPct+'%':'-'}</td><td style="font-weight:700">${r.moPct?r.moPct+'%':'-'}</td>${deltaCell(h.moPct||0,r.moPct)}`;
+    cells+=`<td>${(tranche(i).ngkInstoreShare*100).toFixed(1)}%</td>`;
+    cells+=`</tr>`;
+    rows+=cells;
+  });
+  table.innerHTML=rows;
+  table.style.minWidth = Math.max(900, 200 + kvsLines.length * 180) + 'px';
+}
+
+// ═══════════════════════════════════════════
+// HISTORIQUE
+// ═══════════════════════════════════════════
+function renderHistorique(){
+  const c=document.getElementById('history-content');
+  if(!c) return;
+  if(history.length===0){
+    c.innerHTML=`<div class="empty-state"><div class="empty-icon">⏱</div><div>Aucun historique pour l'instant — une entrée est ajoutée automatiquement à chaque export PDF du résumé de debrief.</div></div>`;
+    return;
+  }
+
+  // ── SCORE PAR MANAGER ──
+  const managerMap={};
+  history.forEach(h=>{
+    const m=h.manager||'—';
+    if(!managerMap[m]) managerMap[m]={sessions:0,gcOk:0,salesOk:0};
+    const mm=managerMap[m];
+    mm.sessions++;
+    if(h.totGcP && h.totGcR>=h.totGcP) mm.gcOk++;
+    if(h.totSalesP && h.totSalesR>=h.totSalesP) mm.salesOk++;
+  });
+  const managers=Object.entries(managerMap).sort((a,b)=>{
+    const sa=a[1].sessions?(a[1].gcOk+a[1].salesOk)/(a[1].sessions*2):0;
+    const sb=b[1].sessions?(b[1].gcOk+b[1].salesOk)/(b[1].sessions*2):0;
+    return sb-sa;
+  });
+  const medals=['🥇','🥈','🥉'];
+  const scoreCards=managers.map(([name,m],rank)=>{
+    const pct=m.sessions?Math.round((m.gcOk+m.salesOk)/(m.sessions*2)*100):0;
+    const color=pct>=97?'var(--green)':pct>=93?'var(--gold)':'var(--red)';
+    const gcPct=m.sessions?Math.round(m.gcOk/m.sessions*100):0;
+    const salesPct=m.sessions?Math.round(m.salesOk/m.sessions*100):0;
+    const medal=medals[rank]||'';
+    return `<div style="background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px;min-width:170px;flex:1;border-top:3px solid ${color}">
+      <div style="font-size:10px;color:var(--muted);font-weight:700;letter-spacing:.5px;margin-bottom:4px">MANAGER</div>
+      <div style="font-size:14px;font-weight:800;color:var(--text);margin-bottom:8px">${medal} ${name}</div>
+      <div style="font-size:28px;font-weight:900;color:${color};line-height:1">${pct}<span style="font-size:14px">%</span></div>
+      <div style="font-size:10px;color:var(--muted);margin-bottom:8px">Score global</div>
+      <div style="display:flex;flex-wrap:wrap;gap:6px;font-size:11px">
+        <span style="background:var(--bg);padding:2px 7px;border-radius:5px;color:var(--muted)">${m.sessions} session${m.sessions>1?'s':''}</span>
+        <span style="background:var(--bg);padding:2px 7px;border-radius:5px;color:var(--green)">TC's ${gcPct}%</span>
+        <span style="background:var(--bg);padding:2px 7px;border-radius:5px;color:var(--blue)">Sales ${salesPct}%</span>
+      </div>
+    </div>`;
+  }).join('');
+
+  c.innerHTML=`
+    <div style="margin-bottom:18px">
+      <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:10px">Score par manager — ${history.length} session(s) enregistrée(s)</div>
+      <div style="display:flex;flex-wrap:wrap;gap:10px;margin-bottom:22px">${scoreCards}</div>
+    </div>
+    <div class="hist-overflow"><table class="hist-table">
+      <thead><tr>
+        <th>Date</th><th>Restaurant</th><th>Manager</th><th>TC's Prévu/Réal.</th><th>Sales Prévu/Réal.</th><th>Statut</th><th>Enregistré le</th><th></th>
+      </tr></thead>
+      <tbody>${history.map((h,idx)=>{
+        const gcOk=h.totGcP?h.totGcR>=h.totGcP:null;
+        const salesOk=h.totSalesP?h.totSalesR>=h.totSalesP:null;
+        const statusBadge=(gcOk===null)?`<span class="badge badge-warning">Sans réalisé</span>`
+          :(gcOk&&salesOk)?`<span class="badge badge-success">Objectifs atteints</span>`
+          :`<span class="badge badge-danger">Sous objectif</span>`;
+        return `<tr>
+          <td style="font-weight:700">${h.date?new Date(h.date).toLocaleDateString('fr-FR'):'-'}</td>
+          <td style="color:var(--text)">${h.restaurant||'-'}</td>
+          <td style="color:var(--muted)">${h.manager||'-'}</td>
+          <td>${fmtN(h.totGcR||0)} / ${fmtN(h.totGcP||0)}</td>
+          <td>${fmtN(h.totSalesR||0)} / ${fmtN(h.totSalesP||0)} MAD</td>
+          <td>${statusBadge}</td>
+          <td style="color:var(--muted);font-size:11px">${new Date(h.savedAt).toLocaleString('fr-FR')}</td>
+          <td><button class="hist-del" onclick="deleteHistorique(${idx})" title="Supprimer">✕</button></td>
+        </tr>`;
+      }).join('')}</tbody>
+    </table></div>`;
+}
+// Mot de passe requis pour confirmer la suppression d'une entrée de l'historique
+const HISTORIQUE_DELETE_PASSWORD = "MCDO2024";
+
+function deleteHistorique(idx){
+  const pwd = prompt("Mot de passe requis pour supprimer cette entrée de l'historique :");
+  if(pwd === null) return; // annulé
+  if(pwd !== HISTORIQUE_DELETE_PASSWORD){
+    toast("Mot de passe incorrect — suppression annulée","var(--red)");
+    return;
+  }
+  if(!confirm("Confirmer la suppression définitive de cette entrée ?")) return;
+  history.splice(idx,1);
+  saveHistory();
+  renderHistorique();
+  toast("Entrée supprimée ✓","var(--orange)");
+}
+
+// Enregistre l'état courant du debrief comme une nouvelle entrée d'historique (appelé à chaque export PDF)
+function saveToHistory(){
+  const totGcP=hours.reduce((s,h)=>s+h.gcPrevu,0);
+  const totSalesP=hours.reduce((s,h)=>s+h.salesPrevu,0);
+  const totGcR=realises.reduce((s,r)=>s+(parseFloat(r.gc)||0),0);
+  const totSalesR=realises.reduce((s,r)=>s+(parseFloat(r.sales)||0),0);
+  const totGmalP=refDay.reduce((s,r)=>s+(r.gmal||0),0);
+  const totMopP=refDay.reduce((s,r)=>s+(r.mop||0),0);
+  const totGmalR=realises.reduce((s,r)=>s+(parseFloat(r.gmal)||0),0);
+  const totMopR=realises.reduce((s,r)=>s+(parseFloat(r.mop)||0),0);
+  const totEffP=hours.reduce((s,h)=>s+(h.effectifPrevu||0),0);
+  const totEffR=realises.reduce((s,r)=>s+(parseFloat(r.effectifRealise)||0),0);
+  const entry={
+    date:cfg.date, restaurant:cfg.restaurant, manager:cfg.manager, event:cfg.event,
+    totGcP, totGcR, totSalesP, totSalesR, totGmalP, totGmalR, totMopP, totMopR, totEffP, totEffR,
+    savedAt:new Date().toISOString()
+  };
+  history=[entry, ...history.slice(0,49)]; // garde les 50 dernières sessions
+  saveHistory();
+}
+
+// ═══════════════════════════════════════════
+// EXPORT — DASHBOARD STYLE
+// ═══════════════════════════════════════════
+function exportDebrief(){
+  try{
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({unit:'mm',format:'a4',orientation:'landscape'});
+  const pageW = doc.internal.pageSize.getWidth();
+  const pageH = doc.internal.pageSize.getHeight();
+  const marginL = 8, marginR = 8;
+  const contentW = pageW - marginL - marginR;
+
+  const gold=[255,199,44], ink=[20,20,20], muted=[110,110,110], green=[16,150,98], orange=[217,119,6], red=[197,48,48], blue=[37,99,235], purple=[168,85,247], headerGray=[55,55,55];
+  const cardBg=[250,250,250], gridLine=[228,228,228], cPrevu=gold, cRealise=blue, cPos=green, cNeg=red, cFaint=[150,150,150];
+
+  const i0 = activeHourIdx||0;
+  const h0 = hours[i0]||hours[0];
+  const tr0 = tranche(i0);
+  const dash=v=>(v===0||v===null||v===undefined||v==='')?'—':String(v);
+
+  // ── EN-TÊTE STYLE SCORECARD ──
+  doc.setFillColor(...headerGray);
+  doc.rect(0, 0, pageW, 11, 'F');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(11.5);
+  doc.setTextColor(255,255,255);
+  doc.text('DEBRIEF DE SHIFT — TABLEAU DE BORD', pageW/2, 7.3, {align:'center'});
+
+  const dateStr = cfg.date ? new Date(cfg.date).toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}) : '—';
+  doc.setFillColor(...gold);
+  doc.rect(marginL, 13.5, contentW, 6, 'F');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(8.8);
+  doc.setTextColor(20,20,20);
+  doc.text(`${cfg.restaurant||'—'}   |   ${dateStr}   |   Manager : ${cfg.manager||'—'}   |   ${cfg.event||'—'}`, pageW/2, 17.7, {align:'center'});
+
+  let y = 23;
+
+  // ═══════════════════════════════════════════
+  // RANGÉE 1 — 4 KPI HÉROS (Sales / TC's / Panier moyen / Digital, journée entière)
+  // ═══════════════════════════════════════════
+  const labels = hours.map(h=>hourLabel(h));
+  const salesPrevuArr = hours.map(h=>h.salesPrevu||0);
+  const salesRealArr = realises.map(r=>parseFloat(r.sales)||null);
+  const gcPrevuArr = hours.map(h=>h.gcPrevu||0);
+  const gcRealArr = realises.map(r=>parseFloat(r.gc)||null);
+
+  const totSalesP = salesPrevuArr.reduce((a,b)=>a+b,0);
+  const totSalesR = salesRealArr.reduce((a,b)=>a+(b||0),0);
+  const totGcP = gcPrevuArr.reduce((a,b)=>a+b,0);
+  const totGcR = gcRealArr.reduce((a,b)=>a+(b||0),0);
+  const hasRealData = salesRealArr.some(v=>v!==null) || gcRealArr.some(v=>v!==null);
+  const salesDeltaPct = totSalesP? ((totSalesR-totSalesP)/totSalesP*100) : 0;
+  const gcDeltaPct = totGcP? ((totGcR-totGcP)/totGcP*100) : 0;
+
+  const totGmalR=realises.reduce((s,r)=>s+(parseFloat(r.gmal)||0),0);
+  const totMopR=realises.reduce((s,r)=>s+(parseFloat(r.mop)||0),0);
+  const totGmalP=refDay.reduce((s,r)=>s+(r.gmal||0),0);
+  const totMopP=refDay.reduce((s,r)=>s+(r.mop||0),0);
+  const digitalReal=totGmalR+totMopR, digitalPrevu=totGmalP+totMopP;
+  const hasDigitalReal = realises.some(r=>r.gmal||r.mop);
+  const digitalDeltaPct = digitalPrevu? ((digitalReal-digitalPrevu)/digitalPrevu*100) : 0;
+  const pmReal = (totGcR && totSalesR)? +(totSalesR/totGcR).toFixed(2) : null;
+  const pmDeltaPct = (pmReal!==null && cfg.pm)? ((pmReal-cfg.pm)/cfg.pm*100) : 0;
+
+  const kpiH = 21, kpiGap = 3.5;
+  const kpiW = (contentW - kpiGap*3)/4;
+  function kpiHeroCard(x, label, value, unit, deltaPct, hasData){
+    doc.setFillColor(...cardBg);
+    doc.roundedRect(x, y, kpiW, kpiH, 1.3, 1.3, 'F');
+    doc.setDrawColor(...gridLine);
+    doc.setLineWidth(0.2);
+    doc.roundedRect(x, y, kpiW, kpiH, 1.3, 1.3, 'S');
+
+    // -- Ligne 1 : libellé (pleine largeur, seul sur sa ligne) --
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(7);
+    doc.setTextColor(110,110,110);
+    doc.text(label.toUpperCase(), x+3.5, y+5.3);
+
+    // -- Ligne 2 : valeur + unité (réduit automatiquement si trop long) --
+    const maxValW = kpiW - 7; // marge gauche+droite dispo pour value+unit
+    let valueFontSize = 13;
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(valueFontSize);
+    let valueW = doc.getTextWidth(value);
+    let unitW = unit ? (()=>{doc.setFont('helvetica','normal');doc.setFontSize(7);return doc.getTextWidth(unit);})() : 0;
+    // si value+unit dépasse la largeur dispo, on réduit la taille de la valeur
+    while((valueW + (unit?1.5+unitW:0)) > maxValW && valueFontSize > 9){
+      valueFontSize -= 0.5;
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(valueFontSize);
+      valueW = doc.getTextWidth(value);
+    }
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(valueFontSize);
+    doc.setTextColor(...ink);
+    doc.text(value, x+3.5, y+13.2);
+    if(unit){
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(7);
+      doc.setTextColor(140,140,140);
+      doc.text(unit, x+3.5+valueW+1.5, y+13.2);
+    }
+
+    // -- Ligne 3 : séparateur + badge de variation, en dessous, pleine largeur --
+    if(hasData){
+      doc.setDrawColor(...gridLine);
+      doc.setLineWidth(0.2);
+      doc.line(x+3.5, y+15.8, x+kpiW-3.5, y+15.8);
+      const good = deltaPct>=0;
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(6);
+      doc.setTextColor(150,150,150);
+      doc.text('vs prévu', x+3.5, y+19.3);
+      doc.setFont('helvetica','bold');
+      doc.setFontSize(8);
+      doc.setTextColor(...(good?cPos:cNeg));
+      doc.text(`${good?'▲':'▼'} ${Math.abs(deltaPct).toFixed(1)}%`, x+kpiW-3.5, y+19.3, {align:'right'});
+    }
+  }
+  kpiHeroCard(marginL, 'Sales', hasRealData?fmtN(totSalesR):fmtN(totSalesP), 'MAD', salesDeltaPct, hasRealData);
+  kpiHeroCard(marginL+kpiW+kpiGap, "TC's", hasRealData?fmtN(totGcR):fmtN(totGcP), '', gcDeltaPct, hasRealData);
+  kpiHeroCard(marginL+2*(kpiW+kpiGap), 'Panier moyen', pmReal!==null?String(pmReal):String(cfg.pm||0), 'MAD', pmDeltaPct, pmReal!==null);
+  kpiHeroCard(marginL+3*(kpiW+kpiGap), "Gc's Digital", hasDigitalReal?fmtN(digitalReal):fmtN(digitalPrevu), '', digitalDeltaPct, hasDigitalReal);
+
+  y += kpiH + 5;
+
+  // ═══════════════════════════════════════════
+  // RANGÉE 2 — 3 COLONNES : OPERATIONS · PEOPLE · DIGITAL (façon ScoreCard)
+  // ═══════════════════════════════════════════
+  const row2Top = y;
+  const row2H = 56;
+  const colGap = 3.5;
+  const colW = (contentW - colGap*2) / 3;
+  const xOps = marginL, xPeople = marginL+colW+colGap, xDigital = marginL+2*(colW+colGap);
+
+  function sectionFrame(x, w, h, title){
+    doc.setDrawColor(...gridLine);
+    doc.setLineWidth(0.2);
+    doc.roundedRect(x, row2Top, w, h, 1.3, 1.3, 'S');
+    scoreSectionBand(doc, x, row2Top, w, title);
+  }
+  sectionFrame(xOps, colW, row2H, 'Operations');
+  sectionFrame(xPeople, colW, row2H, 'People — Crew');
+  sectionFrame(xDigital, colW, row2H, 'Digital');
+
+  // ── OPERATIONS : cartes objectif + barre de progression colorée (comme l'image) ──
+  function opsLine(x, yy, w, label, val, target, unit, lowerIsBetter){
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(7);
+    doc.setTextColor(90,90,90);
+    doc.text(label, x, yy);
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(9.5);
+    doc.setTextColor(...ink);
+    doc.text(dash(val)+(unit&&val!==0&&val!==null&&val!==undefined&&val!==''?unit:''), x+w-2, yy, {align:'right'});
+    const hasVal = val!==0 && val!==null && val!==undefined && val!=='';
+    const ratio = hasVal && target ? (lowerIsBetter ? target/val : val/target) : 0;
+    const ok = hasVal ? (lowerIsBetter? val<=target : val>=target) : false;
+    progressBar(doc, x, yy+1.6, w, 1.8, hasVal?Math.min(1,ratio):0, {goodColor:green, badColor:red, threshold:1, trackColor:[235,235,235]});
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(5.6);
+    doc.setTextColor(...cFaint);
+    doc.text(`Objectif ${target}${unit||''}`, x, yy+5);
+  }
+  let yo = row2Top+10;
+  const opsRowH = 8.6;
+  opsLine(xOps+4, yo, colW-8, 'KVS (sec)', h0.kvsL1, 50, 's', true); yo+=opsRowH;
+  opsLine(xOps+4, yo, colW-8, 'OEPE Drive (sec)', h0.oepe, 120, 's', true); yo+=opsRowH;
+  opsLine(xOps+4, yo, colW-8, 'R2P (sec)', h0.r2p, 90, 's', true); yo+=opsRowH;
+  opsLine(xOps+4, yo, colW-8, 'TPHE', h0.tphe, 5, '', false); yo+=opsRowH;
+  opsLine(xOps+4, yo, colW-8, 'NGK part instore (%)', +(tr0.ngkInstoreShare*100).toFixed(1), 30, '%', false); yo+=opsRowH;
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(6.3);
+  doc.setTextColor(...cFaint);
+  doc.text(`TC's prévus (tranche ${hourLabel(h0)}) : ${fmtN(h0.gcPrevu||0)}`, xOps+4, row2Top+row2H-3);
+
+  // ── PEOPLE : 3 mini-donuts centrés (Besoin tranche · Effectif Prévu/Réalisé · M.O Prévu/Réalisé) ──
+  const crewTotal = postes.reduce((s,p)=>s+p.crew,0);
+  const crewBesoin = h0.effectifPrevu||0;
+  const activePostes = postes.filter(p=>p.crew>0);
+
+  const effRealise = realises[i0] && realises[i0].effectifRealise ? parseFloat(realises[i0].effectifRealise) : null;
+  const moPrevu = h0.moPct||0;
+  const moRealiseVal = realises[i0] && realises[i0].moPct ? parseFloat(realises[i0].moPct) : null;
+
+  function kpiDonut(cx, cy, r, val, max, color, centerTxt, label, sub){
+    const safeMax = max>0?max:1;
+    const remain = Math.max(0, safeMax-Math.max(0,val));
+    if(val>0 || remain>0){
+      pieChart(doc, cx, cy, r, [
+        {value:Math.max(0,val), color},
+        {value:remain, color:[230,230,230]}
+      ]);
+    } else {
+      doc.setFillColor(...gridLine);
+      doc.circle(cx, cy, r, 'F');
+    }
+    doc.setFillColor(255,255,255);
+    doc.circle(cx, cy, r*0.58, 'F');
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(8);
+    doc.setTextColor(...ink);
+    doc.text(centerTxt, cx, cy+1, {align:'center'});
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(5.6);
+    doc.setTextColor(90,90,90);
+    doc.text(label, cx, cy+r+4.3, {align:'center'});
+    if(sub){
+      doc.setFontSize(5);
+      doc.setTextColor(...cFaint);
+      doc.text(sub, cx, cy+r+7.7, {align:'center'});
+    }
+  }
+
+  // Centrage vertical : zone disponible sous le bandeau de titre, jusqu'au bas de la carte
+  const peopleTop = row2Top+10, peopleBottom = row2Top+row2H;
+  const donutY = peopleTop + (peopleBottom-peopleTop)/2 - 2;
+  const donutR = 11.5;
+  const donutSlotW = colW/3;
+  const dx1 = xPeople+donutSlotW*0.5, dx2 = xPeople+donutSlotW*1.5, dx3 = xPeople+donutSlotW*2.5;
+
+  kpiDonut(dx1, donutY, donutR, crewTotal, crewBesoin, crewTotal>=crewBesoin?cPos:cNeg,
+    `${crewTotal}/${crewBesoin||0}`, 'Besoin tranche');
+  kpiDonut(dx2, donutY, donutR, effRealise||0, crewBesoin,
+    effRealise===null?cFaint:(effRealise>=crewBesoin?cPos:cNeg),
+    effRealise===null?'—':`${effRealise}/${crewBesoin||0}`, 'Effectif', 'Prévu/Réalisé');
+  kpiDonut(dx3, donutY, donutR, moRealiseVal||0, moPrevu||100,
+    moRealiseVal===null?cFaint:(moRealiseVal<=moPrevu?cPos:cNeg),
+    moRealiseVal===null?'—':`${moRealiseVal}%`, 'M.O %', `Cible ${moPrevu||0}%`);
+
+  // ── DIGITAL : mini-barres GMAL/MOP + Frites/Boissons ──
+  const rd0 = refDay[i0]||{gmal:0,mop:0,mc:0};
+  const r0 = realises[i0]||{gmal:'',mop:''};
+  function miniHBar(x, yy, w, label, prevu, real){
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(6.8);
+    doc.setTextColor(90,90,90);
+    doc.text(label, x, yy);
+    const barY1=yy+2, barY2=yy+5.6, barH=2.4;
+    const maxV = Math.max(1, prevu, real||0);
+    const trackW = w-22;
+    doc.setFillColor(...gridLine);
+    doc.rect(x, barY1, trackW, barH, 'F');
+    doc.rect(x, barY2, trackW, barH, 'F');
+    doc.setFillColor(...cPrevu);
+    doc.rect(x, barY1, trackW*Math.min(1,prevu/maxV), barH, 'F');
+    if(real!==null && real!==undefined){
+      doc.setFillColor(...cRealise);
+      doc.rect(x, barY2, trackW*Math.min(1,real/maxV), barH, 'F');
+    }
+    doc.setFontSize(6);
+    doc.setTextColor(...cPrevu);
+    doc.text(String(prevu), x+trackW+2, barY1+2);
+    doc.setTextColor(...cRealise);
+    doc.text(real!==null&&real!==undefined?String(real):'—', x+trackW+2, barY2+2);
+  }
+  let yd = row2Top+10;
+  miniHBar(xDigital+4, yd, colW-8, 'GMAL (réf./réal.)', rd0.gmal||0, r0.gmal?parseFloat(r0.gmal):null); yd+=10.5;
+  miniHBar(xDigital+4, yd, colW-8, 'MOP (réf./réal.)', rd0.mop||0, r0.mop?parseFloat(r0.mop):null); yd+=10.5;
+
+  doc.setDrawColor(...gridLine);
+  doc.setLineWidth(0.15);
+  doc.line(xDigital+4, yd+1, xDigital+colW-4, yd+1);
+  yd += 5;
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(6.6);
+  doc.setTextColor(90,90,90);
+  doc.text("TC's MC Café (réf.)", xDigital+4, yd);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(8);
+  doc.setTextColor(...orange);
+  doc.text(fmtN(rd0.mc||0), xDigital+colW-4, yd, {align:'right'});
+
+  y = row2Top + row2H + 5;
+
+  // ═══════════════════════════════════════════
+  // RANGÉE 3 — COURBE SALES (signature) · BARRES TC's · PARTS PRÉVU/RÉALISÉ
+  // ═══════════════════════════════════════════
+  const row3Top = y;
+  const row3H = 42;
+  const wideW = contentW*0.56, narrowW = contentW - wideW - colGap;
+
+  // -- Courbe Sales (élément signature) --
+  doc.setFillColor(...cardBg);
+  doc.roundedRect(marginL, row3Top, wideW, row3H, 1.3, 1.3, 'F');
+  doc.setDrawColor(...gridLine);
+  doc.roundedRect(marginL, row3Top, wideW, row3H, 1.3, 1.3, 'S');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(8);
+  doc.setTextColor(...ink);
+  const salesTitleTxt = 'Sales par tranche — Prévu vs Réalisé (MAD)';
+  doc.text(salesTitleTxt, marginL+6, row3Top+6.5);
+  const salesTitleW = doc.getTextWidth(salesTitleTxt);
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(6.5);
+  const prevuLegendTxt = '● Prévu';
+  const prevuLegendX = marginL+6+salesTitleW+6;
+  const realiseLegendTxt = '● Réalisé';
+  const realiseLegendX = prevuLegendX+doc.getTextWidth(prevuLegendTxt)+6;
+  doc.setTextColor(...cPrevu);
+  doc.text(prevuLegendTxt, prevuLegendX, row3Top+6.5);
+  doc.setTextColor(...cRealise);
+  doc.text(realiseLegendTxt, realiseLegendX, row3Top+6.5);
+
+  function lineChart(x, yy, w, h, prevuArr, realArr, fmt){
+    const chartTop = yy, chartH = h, chartBottom = chartTop+chartH;
+    const maxVal = Math.max(1, ...prevuArr, ...realArr.filter(v=>v!==null));
+    const n = labels.length;
+    const stepX = n>1 ? w/(n-1) : w;
+    doc.setDrawColor(...gridLine);
+    doc.setLineWidth(0.15);
+    for(let g=0;g<=3;g++){
+      const gy = chartBottom - (g/3)*chartH;
+      doc.line(x, gy, x+w, gy);
+      doc.setFont('helvetica','normal');
+      doc.setFontSize(5.4);
+      doc.setTextColor(170,170,170);
+      doc.text(fmt(maxVal*g/3), x-1.5, gy+1.1, {align:'right'});
+    }
+    doc.setFontSize(5.6);
+    doc.setTextColor(130,130,130);
+    labels.forEach((l,i)=>{ doc.text(l.replace('H',''), x+i*stepX, chartBottom+3.8, {align:'center'}); });
+    function drawLine(arr, color){
+      doc.setDrawColor(...color);
+      doc.setLineWidth(0.55);
+      let prevPt=null;
+      arr.forEach((v,i)=>{
+        if(v===null||v===undefined){ prevPt=null; return; }
+        const px = x+i*stepX, py = chartBottom - (v/maxVal)*chartH;
+        if(prevPt) doc.line(prevPt[0],prevPt[1],px,py);
+        prevPt=[px,py];
+      });
+      arr.forEach((v,i)=>{
+        if(v===null||v===undefined) return;
+        const px = x+i*stepX, py = chartBottom - (v/maxVal)*chartH;
+        doc.setFillColor(...color);
+        doc.circle(px,py,0.8,'F');
+      });
+    }
+    drawLine(prevuArr, cPrevu);
+    if(realArr.some(v=>v!==null)) drawLine(realArr, cRealise);
+    doc.setDrawColor(...gridLine);
+    doc.setLineWidth(0.2);
+    doc.line(x, chartBottom, x+w, chartBottom);
+  }
+  lineChart(marginL+12, row3Top+11, wideW-18, row3H-19, salesPrevuArr, salesRealArr, v=>fmtN(Math.round(v)));
+
+  // -- Parts Prévu vs Réalisé en camemberts (façon "Sales Share") --
+  doc.setFillColor(...cardBg);
+  doc.roundedRect(marginL+wideW+colGap, row3Top, narrowW, row3H, 1.3, 1.3, 'F');
+  doc.setDrawColor(...gridLine);
+  doc.roundedRect(marginL+wideW+colGap, row3Top, narrowW, row3H, 1.3, 1.3, 'S');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(8);
+  doc.setTextColor(...ink);
+  doc.text("TC's — Part Réalisé / Restant", marginL+wideW+colGap+6, row3Top+6.5);
+
+  const xPie2 = marginL+wideW+colGap+narrowW*0.3, yPie2 = row3Top+24, rPie2 = 13;
+  const gcRestant = Math.max(0, totGcP-totGcR);
+  if(hasRealData){
+    pieChart(doc, xPie2, yPie2, rPie2, [
+      {value:totGcR, color:cRealise},
+      {value:gcRestant, color:[225,225,225]}
+    ]);
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(9);
+    doc.setTextColor(...ink);
+    doc.text(`${totGcP?Math.round(totGcR/totGcP*100):0}%`, xPie2, yPie2+1.2, {align:'center'});
+  } else {
+    pieChart(doc, xPie2, yPie2, rPie2, [{value:1, color:[225,225,225]}]);
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(7);
+    doc.setTextColor(...cFaint);
+    doc.text('—', xPie2, yPie2+1.2, {align:'center'});
+  }
+  const legX2 = marginL+wideW+colGap+narrowW*0.56;
+  doc.setFillColor(...cRealise);
+  doc.rect(legX2, row3Top+15, 2.6, 2.6, 'F');
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(6.3);
+  doc.setTextColor(...ink);
+  doc.text(`Réalisé : ${fmtN(totGcR)}`, legX2+4, row3Top+17.2);
+  doc.setFillColor(225,225,225);
+  doc.rect(legX2, row3Top+20.5, 2.6, 2.6, 'F');
+  doc.text(`Restant : ${fmtN(gcRestant)}`, legX2+4, row3Top+22.7);
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(6);
+  doc.setTextColor(...cFaint);
+  doc.text(`Objectif : ${fmtN(totGcP)} TC's`, legX2, row3Top+29);
+
+  y = row3Top + row3H + 5;
+
+  // ═══════════════════════════════════════════
+  // RANGÉE 4 — VITESSE PAR TRANCHE (mini-table) · POSITIONNEMENT (barre empilée) · NOTES
+  // ═══════════════════════════════════════════
+  const row4Top = y;
+  const row4H = pageH - row4Top - 7;
+  const speedW = contentW*0.4, posW = contentW*0.24, notesW = contentW - speedW - posW - colGap*2;
+
+  // -- Vitesse par tranche : mini-table compacte --
+  doc.setFillColor(...cardBg);
+  doc.roundedRect(marginL, row4Top, speedW, row4H, 1.3, 1.3, 'F');
+  doc.setDrawColor(...gridLine);
+  doc.roundedRect(marginL, row4Top, speedW, row4H, 1.3, 1.3, 'S');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(...ink);
+  doc.text('Vitesse & pilotage par tranche', marginL+5, row4Top+6);
+
+  const colXs = [marginL+5, marginL+22, marginL+38, marginL+54, marginL+70, marginL+86, marginL+102, marginL+118];
+  let ySpeed = row4Top+11;
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(5.6);
+  doc.setTextColor(...muted);
+  ['TRANCHE','KVS','R2P','OEPE','TPHE','M.O%','NGK%'].forEach((t,idx)=>doc.text(t, colXs[idx], ySpeed));
+  ySpeed += 1.5;
+  doc.setDrawColor(...gridLine);
+  doc.setLineWidth(0.15);
+  doc.line(marginL+5, ySpeed, marginL+speedW-5, ySpeed);
+  ySpeed += 3.6;
+  const maxRows = Math.min(hours.length, Math.floor((row4H-13)/4.2));
+  hours.slice(0,maxRows).forEach((h,i)=>{
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(6.2);
+    doc.setTextColor(...ink);
+    doc.text(hourLabel(h), colXs[0], ySpeed);
+    doc.setFont('helvetica','normal');
+    doc.setTextColor(...orange);
+    doc.text(dash(h.kvsL1), colXs[1], ySpeed);
+    doc.setTextColor(...red);
+    doc.text(dash(h.r2p), colXs[2], ySpeed);
+    doc.text(dash(h.oepe), colXs[3], ySpeed);
+    doc.setTextColor(...green);
+    doc.text(dash(h.tphe), colXs[4], ySpeed);
+    doc.setTextColor(...ink);
+    doc.text(h.moPct?h.moPct+'%':'—', colXs[5], ySpeed);
+    doc.text((tranche(i).ngkInstoreShare*100).toFixed(0)+'%', colXs[6], ySpeed);
+    ySpeed += 4.2;
+  });
+
+  // -- Positionnement : barre empilée horizontale --
+  const xPos = marginL+speedW+colGap;
+  doc.setFillColor(...cardBg);
+  doc.roundedRect(xPos, row4Top, posW, row4H, 1.3, 1.3, 'F');
+  doc.setDrawColor(...gridLine);
+  doc.roundedRect(xPos, row4Top, posW, row4H, 1.3, 1.3, 'S');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(...ink);
+  doc.text('Positionnement équipiers', xPos+5, row4Top+6);
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(11);
+  doc.text(`${crewTotal}`, xPos+5, row4Top+13.5);
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(6.3);
+  doc.setTextColor(...cFaint);
+  doc.text('équipiers positionnés', xPos+12, row4Top+13.5);
+
+  // barre empilée (largeur proportionnelle au crew de chaque poste actif)
+  const stackY = row4Top+18, stackH = 5, stackW = posW-10;
+  let stackX = xPos+5;
+  if(crewTotal>0){
+    activePostes.forEach(p=>{
+      const segW = stackW*(p.crew/crewTotal);
+      doc.setFillColor(...(hexToRgb(p.color)||gold));
+      doc.rect(stackX, stackY, Math.max(0.1,segW), stackH, 'F');
+      stackX += segW;
+    });
+  } else {
+    doc.setFillColor(...gridLine);
+    doc.rect(stackX, stackY, stackW, stackH, 'F');
+  }
+  let legYp = stackY+stackH+4.5;
+  [...activePostes].sort((a,b)=>b.crew-a.crew).slice(0,8).forEach(p=>{
+    if(legYp > row4Top+row4H-3) return;
+    doc.setFillColor(...(hexToRgb(p.color)||gold));
+    doc.rect(xPos+5, legYp-2, 2.2, 2.2, 'F');
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(5.8);
+    doc.setTextColor(...ink);
+    doc.text(`${p.name} : ${p.crew}`, xPos+8.5, legYp);
+    legYp += 3.6;
+  });
+
+  // -- Notes (condensées) --
+  const xNotes = xPos+posW+colGap;
+  doc.setFillColor(...cardBg);
+  doc.roundedRect(xNotes, row4Top, notesW, row4H, 1.3, 1.3, 'F');
+  doc.setDrawColor(...gridLine);
+  doc.roundedRect(xNotes, row4Top, notesW, row4H, 1.3, 1.3, 'S');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(7.5);
+  doc.setTextColor(...ink);
+  doc.text('Notes de fin de shift', xNotes+5, row4Top+6);
+
+  let yNote = row4Top+11;
+  function noteBlockCompact(title, val, color){
+    doc.setFont('helvetica','bold');
+    doc.setFontSize(6.3);
+    doc.setTextColor(...color);
+    doc.text(title, xNotes+5, yNote);
+    yNote += 3.6;
+    doc.setFont('helvetica','normal');
+    doc.setFontSize(6.6);
+    doc.setTextColor(...ink);
+    const txt = val || '—';
+    const wrapped = doc.splitTextToSize(txt, notesW-10);
+    const maxLines = 3;
+    wrapped.slice(0,maxLines).forEach(l=>{ doc.text(l, xNotes+5, yNote); yNote+=3.4; });
+    yNote += 2;
+  }
+  noteBlockCompact('POINTS POSITIFS', document.getElementById('db-positifs').value, green);
+  noteBlockCompact("POINTS D'AMÉLIORATION", document.getElementById('db-amelio').value, orange);
+  noteBlockCompact('CONSIGNES DE PASSATION', document.getElementById('db-next').value, blue);
+
+  // ── FOOTER ──
+  doc.setFont('helvetica','normal');
+  doc.setFontSize(6.5);
+  doc.setTextColor(...muted);
+  doc.text(`Tranche de référence affichée : ${hourLabel(h0)}`, marginL, pageH-3);
+  doc.text(`Généré par ShiftPilot SE AE 26  ·  ${new Date().toLocaleDateString('fr-FR')}`, pageW-marginR, pageH-3, {align:'right'});
+
+  const restName = (cfg.restaurant||'restaurant').replace(/\s+/g,'-');
+  const dateName = cfg.date || new Date().toISOString().slice(0,10);
+  doc.save(`debrief-${restName}-${dateName}.pdf`);
+  saveToHistory();
+  if(document.getElementById('page-historique').classList.contains('active')) renderHistorique();
+  toast("Résumé exporté en PDF — entrée ajoutée à l'historique ✓");
+  }catch(err){ alert('Erreur PDF: '+err.message+'\n\nStack: '+err.stack); console.error(err); }
+}
+
+// Bandeau de section façon ScoreCard : fond or pleine largeur, texte centré sombre
+function scoreSectionBand(doc, x, y, w, txt){
+  doc.setFillColor(255,199,44);
+  doc.rect(x, y, w, 6.2, 'F');
+  doc.setFont('helvetica','bold');
+  doc.setFontSize(9);
+  doc.setTextColor(20,20,20);
+  doc.text(txt.toUpperCase(), x+w/2, y+4.3, {align:'center'});
+}
+
+// Camembert plein à N tranches (façon "Sales Share" / "Gc's Share")
+function pieChart(doc, cx, cy, r, slices){
+  // slices: [{value, color:[r,g,b]}, ...]
+  const total = slices.reduce((s,sl)=>s+Math.max(0,sl.value),0) || 1;
+  let startA = -90;
+  slices.forEach(sl=>{
+    const v = Math.max(0, sl.value);
+    if(v<=0) return;
+    const sweep = (v/total)*360;
+    doc.setFillColor(...sl.color);
+    const steps = Math.max(2, Math.round(sweep/4));
+    const pts=[[cx,cy]];
+    for(let i=0;i<=steps;i++){
+      const ang=(startA + (i/steps)*sweep)*Math.PI/180;
+      pts.push([cx+r*Math.cos(ang), cy+r*Math.sin(ang)]);
+    }
+    for(let i=1;i<pts.length-1;i++){
+      doc.triangle(pts[0][0],pts[0][1],pts[i][0],pts[i][1],pts[i+1][0],pts[i+1][1],'F');
+    }
+    startA += sweep;
+  });
+}
+
+// Barre de progression horizontale colorée (valeur vs cible), façon barres rouge/vert
+function progressBar(doc, x, y, w, h, pct, opts={}){
+  const {trackColor=[230,230,230], goodColor=[22,163,74], badColor=[197,48,48], threshold=1} = opts;
+  const p = Math.max(0, Math.min(1, pct));
+  doc.setFillColor(...trackColor);
+  doc.rect(x, y, w, h, 'F');
+  const color = p>=threshold ? goodColor : badColor;
+  doc.setFillColor(...color);
+  doc.rect(x, y, w*p, h, 'F');
+}
+
+
+// Convertit une couleur hex (#DA291C) en tableau RGB [r,g,b]
+function hexToRgb(hex){
+  if(!hex||hex.length<7) return null;
+  const r=parseInt(hex.slice(1,3),16), g=parseInt(hex.slice(3,5),16), b=parseInt(hex.slice(5,7),16);
+  return isNaN(r)?null:[r,g,b];
+}
+
+// ═══════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════
+function fmtN(n){
+  n = Number(n)||0;
+  const neg = n < 0; n = Math.abs(n);
+  const parts = n.toString().split('.');
+  parts[0] = parts[0].replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  const out = parts.join(',');
+  return neg ? '-'+out : out;
+}
+
+function kpiHtml(lbl,val,unit,color){
+  return `<div class="kpi" style="border-left-color:${color}">
+    <span class="kpi-lbl">${lbl}</span>
+    <span class="kpi-val" style="color:${color}">${val}</span>
+    ${unit?`<span class="kpi-sub">${unit}</span>`:''}
+  </div>`;
+}
+function kpiSmall(lbl,val,unit,color){
+  return `<div class="kpi" style="border-left-color:${color};padding:8px 12px;min-width:80px">
+    <span class="kpi-lbl">${lbl}</span>
+    <span class="kpi-val" style="color:${color};font-size:16px">${val}</span>
+    ${unit?`<span class="kpi-sub">${unit}</span>`:''}
+  </div>`;
+}
+
+function toast(msg,color='var(--green)'){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.style.background=color;
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+// ── Protection : clic droit / Inspecter / Ctrl+U ──
+document.addEventListener('contextmenu', e => e.preventDefault());
+document.addEventListener('keydown', e => {
+  const k = e.key;
+  if (
+    k === 'F12' ||
+    (e.ctrlKey && e.shiftKey && (k === 'I' || k === 'i' || k === 'J' || k === 'j' || k === 'C' || k === 'c')) ||
+    (e.ctrlKey && (k === 'U' || k === 'u')) ||
+    (e.metaKey && e.altKey && (k === 'I' || k === 'i' || k === 'J' || k === 'j')) ||
+    (e.metaKey && (k === 'U' || k === 'u'))
+  ) {
+    e.preventDefault();
+  }
+});
+document.addEventListener('dragstart', e => e.preventDefault());
+
+// ── Isolation des brouillons par identité (Restaurant + Manager + Date + Shift) ──
+// Dès qu'un manager renseigne son nom, sa date ou son shift, on bascule vers SON espace de
+// travail (existant ou vierge) au lieu de continuer à modifier les données d'un autre manager/shift.
+['cfg-restaurant','cfg-date','cfg-manager','cfg-period'].forEach(id=>{
+  const el=document.getElementById(id);
+  if(el) el.addEventListener('change', handleIdentityFieldChange);
+});
+
+// ── Reprise de session : restaure automatiquement le dernier brouillon enregistré ──
+restoreCurrentState();
+</script>
+</body>
+</html>
